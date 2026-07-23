@@ -1,10 +1,11 @@
-import { creneauxDisponibles } from "@/lib/creneaux";
+import { ensureCreneaux, creneauxDisponibles } from "@/lib/creneaux";
 import ReservationFlow from "./reservation-flow";
 
 // La page est rendue dynamiquement pour toujours afficher les places à jour.
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
+  await ensureCreneaux();
   const creneaux = await creneauxDisponibles();
 
   return (

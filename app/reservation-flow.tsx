@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CreneauDisponible } from "@/lib/creneaux";
 
 function formatJour(iso: string): string {
@@ -20,6 +20,9 @@ function formatHeure(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Nombre de journées révélées à chaque palier de défilement.
+const PAS = 6;
+
 export default function ReservationFlow({
   creneaux,
 }: {
@@ -29,6 +32,8 @@ export default function ReservationFlow({
   const [envoi, setEnvoi] = useState(false);
   const [succes, setSucces] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [nbJours, setNbJours] = useState(PAS);
+  const sentinelle = useRef<HTMLDivElement | null>(null);
 
   // Regroupe les créneaux par jour pour un affichage type calendrier.
   const parJour = useMemo(() => {
@@ -40,6 +45,22 @@ export default function ReservationFlow({
     }
     return Array.from(groupes.entries());
   }, [creneaux]);
+
+  // Défilement infini : révèle plus de journées quand la sentinelle devient visible.
+  useEffect(() => {
+    const el = sentinelle.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setNbJours((n) => Math.min(n + PAS, parJour.length));
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [parJour.length]);
 
   async function soumettre(formData: FormData) {
     if (!choisi) return;
@@ -109,6 +130,8 @@ export default function ReservationFlow({
     );
   }
 
+  const joursVisibles = parJour.slice(0, nbJours);
+
   return (
     <div className="grid gap-6 lg:grid-cols-5">
       {/* Colonne créneaux */}
@@ -117,7 +140,7 @@ export default function ReservationFlow({
           1. Choisissez un créneau
         </h2>
         <div className="space-y-5">
-          {parJour.map(([jour, liste]) => (
+          {joursVisibles.map(([jour, liste]) => (
             <div key={jour}>
               <h3 className="mb-2 text-base font-semibold capitalize text-slate-500">
                 {jour}
@@ -160,6 +183,15 @@ export default function ReservationFlow({
             </div>
           ))}
         </div>
+
+        {nbJours < parJour.length && (
+          <div
+            ref={sentinelle}
+            className="py-8 text-center text-sm text-slate-400"
+          >
+            Chargement d&apos;autres dates…
+          </div>
+        )}
       </section>
 
       {/* Colonne formulaire */}
@@ -240,13 +272,14 @@ export default function ReservationFlow({
                 className="champ"
                 defaultValue={1}
               >
-                {Array.from({ length: choisi.placesRestantes }, (_, i) => i + 1).map(
-                  (n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  )
-                )}
+                {Array.from(
+                  { length: choisi.placesRestantes },
+                  (_, i) => i + 1
+                ).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
               </select>
             </div>
 

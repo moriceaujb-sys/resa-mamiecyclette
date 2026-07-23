@@ -1,5 +1,6 @@
 import { estConnecte } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ensureCreneaux } from "@/lib/creneaux";
 import LoginForm from "./login-form";
 import Dashboard from "./dashboard";
 
@@ -9,6 +10,8 @@ export default async function AdminPage() {
   if (!estConnecte()) {
     return <LoginForm />;
   }
+
+  await ensureCreneaux();
 
   const maintenant = new Date();
 
