@@ -15,6 +15,7 @@ type Creneau = {
 
 function formaterDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
     weekday: "long",
     day: "numeric",
     month: "long",

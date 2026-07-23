@@ -5,6 +5,7 @@ import type { CreneauDisponible } from "@/lib/creneaux";
 
 function formatJour(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -13,6 +14,7 @@ function formatJour(iso: string): string {
 
 function formatHeure(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));

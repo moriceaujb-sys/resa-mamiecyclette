@@ -30,6 +30,7 @@ type ReservationDto = {
 
 function fmtDateHeure(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
     weekday: "short",
     day: "numeric",
     month: "short",
