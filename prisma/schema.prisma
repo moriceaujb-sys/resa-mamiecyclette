@@ -1,0 +1,56 @@
+// Schéma de la base de données — Resa Mamiecyclette
+// Documentation : https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Un créneau de balade proposé au public.
+model Creneau {
+  id           String        @id @default(cuid())
+  date         DateTime // jour + heure de début de la balade
+  dureeMinutes Int           @default(45)
+  capaciteMax  Int           @default(2) // nombre de places (passagers) sur le triporteur
+  lieuDepart   String        @default("Devant le CCAS")
+  actif        Boolean       @default(true)
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+
+  @@index([date])
+}
+
+enum StatutReservation {
+  EN_ATTENTE
+  CONFIRMEE
+  ANNULEE
+}
+
+enum SourceReservation {
+  PUBLIC // réservation faite en ligne par l'usager
+  INTERNE // saisie par un agent / bénévole du CCAS
+}
+
+// Une réservation sur un créneau.
+model Reservation {
+  id                  String            @id @default(cuid())
+  creneau             Creneau           @relation(fields: [creneauId], references: [id], onDelete: Cascade)
+  creneauId           String
+  nomClient           String
+  telephone           String
+  email               String?
+  adresse             String?
+  nombrePersonnes     Int               @default(1)
+  besoinsParticuliers String?           @db.Text
+  statut              StatutReservation @default(EN_ATTENTE)
+  source              SourceReservation @default(PUBLIC)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([creneauId])
+  @@index([statut])
+}

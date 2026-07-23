@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-marine-50 text-slate-800 antialiased;
+}
+
+/* Champs de formulaire — grands et lisibles (public souvent âgé). */
+.champ {
+  @apply w-full rounded-lg border border-slate-300 px-4 py-3 text-lg
+         focus:border-marine-500 focus:outline-none focus:ring-2 focus:ring-marine-500/30;
+}
+
+.label {
+  @apply mb-1 block text-base font-medium text-slate-700;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-5 py-3 text-lg
+         font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2
+         disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply btn bg-marine-500 text-white hover:bg-marine-600 focus:ring-marine-500;
+}
+
+.btn-soleil {
+  @apply btn bg-soleil-400 text-marine-700 hover:bg-soleil-500 focus:ring-soleil-500;
+}
+
+.btn-ghost {
+  @apply btn bg-white text-marine-600 ring-1 ring-inset ring-slate-300 hover:bg-slate-50;
+}
