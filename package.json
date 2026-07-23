@@ -5,8 +5,8 @@
   "description": "Site de réservation en ligne pour les balades en triporteur du CCAS (Mamiecyclette).",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
