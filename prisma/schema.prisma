@@ -1,5 +1,5 @@
 // Schéma de la base de données — Resa Mamiecyclette
-// Documentation : https://pris.ly/d/prisma-schema
+// Modèle : mise en relation de bénéficiaires (passagers) et de pédaleurs.
 
 generator client {
   provider = "prisma-client-js"
@@ -10,47 +10,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Un créneau de balade proposé au public.
+// Un créneau de balade. Capacité : 2 bénéficiaires + 1 pédaleur.
 model Creneau {
-  id           String        @id @default(cuid())
-  date         DateTime // jour + heure de début de la balade
-  dureeMinutes Int           @default(45)
-  capaciteMax  Int           @default(2) // nombre de places (passagers) sur le triporteur
-  lieuDepart   String        @default("Devant le CCAS")
-  actif        Boolean       @default(true)
-  reservations Reservation[]
-  createdAt    DateTime      @default(now())
+  id                    String          @id @default(cuid())
+  date                  DateTime
+  dureeMinutes          Int             @default(60)
+  capaciteBeneficiaires Int             @default(2)
+  lieuDepart            String          @default("Devant le CCAS")
+  actif                 Boolean         @default(true)
+  pedaleur              Pedaleur?       @relation(fields: [pedaleurId], references: [id])
+  pedaleurId            String?
+  confirmeLe            DateTime?
+  disponibilites        Disponibilite[]
+  createdAt             DateTime        @default(now())
 
   @@index([date])
 }
 
-enum StatutReservation {
-  EN_ATTENTE
-  CONFIRMEE
-  ANNULEE
-}
-
-enum SourceReservation {
-  PUBLIC // réservation faite en ligne par l'usager
-  INTERNE // saisie par un agent / bénévole du CCAS
-}
-
-// Une réservation sur un créneau.
-model Reservation {
-  id                  String            @id @default(cuid())
-  creneau             Creneau           @relation(fields: [creneauId], references: [id], onDelete: Cascade)
-  creneauId           String
-  nomClient           String
+// Un bénéficiaire (passager). Pas de compte : identifié par sa fiche.
+model Beneficiaire {
+  id                  String          @id @default(cuid())
+  nom                 String
   telephone           String
   email               String?
   adresse             String?
-  nombrePersonnes     Int               @default(1)
-  besoinsParticuliers String?           @db.Text
-  statut              StatutReservation @default(EN_ATTENTE)
-  source              SourceReservation @default(PUBLIC)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  besoinsParticuliers String?         @db.Text
+  disponibilites      Disponibilite[]
+  createdAt           DateTime        @default(now())
+}
+
+enum StatutDisponibilite {
+  EN_ATTENTE // disponibilité proposée, en attente de mise en relation
+  CONFIRMEE  // balade confirmée par un pédaleur
+  LIBEREE    // libérée car le bénéficiaire a été confirmé sur un autre créneau
+  ANNULEE    // annulée par l'équipe
+}
+
+// Une disponibilité : un bénéficiaire se déclare dispo sur un créneau.
+model Disponibilite {
+  id             String              @id @default(cuid())
+  creneau        Creneau             @relation(fields: [creneauId], references: [id], onDelete: Cascade)
+  creneauId      String
+  beneficiaire   Beneficiaire        @relation(fields: [beneficiaireId], references: [id], onDelete: Cascade)
+  beneficiaireId String
+  statut         StatutDisponibilite @default(EN_ATTENTE)
+  createdAt      DateTime            @default(now())
 
   @@index([creneauId])
+  @@index([beneficiaireId])
   @@index([statut])
+}
+
+// Un pédaleur : bénévole qui pédale. Dispose d'un compte (inscription libre).
+model Pedaleur {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  nom            String
+  motDePasseHash String
+  creneaux       Creneau[]
+  createdAt      DateTime  @default(now())
 }

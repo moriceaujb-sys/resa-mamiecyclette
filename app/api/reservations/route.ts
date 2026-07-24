@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { envoyerConfirmationClient, envoyerAlerteEquipe } from "@/lib/email";
 
+// Un bénéficiaire déclare ses disponibilités sur un ou plusieurs créneaux.
 const schema = z.object({
-  creneauId: z.string().min(1),
+  creneauIds: z
+    .array(z.string().min(1))
+    .min(1, "Sélectionnez au moins un créneau.")
+    .max(60),
   nomClient: z.string().trim().min(2, "Nom trop court").max(120),
   telephone: z.string().trim().min(6, "Téléphone invalide").max(30),
   email: z.string().trim().email().max(180).optional().or(z.literal("")),
   adresse: z.string().trim().max(240).optional().or(z.literal("")),
-  nombrePersonnes: z.number().int().min(1).max(10),
   besoinsParticuliers: z.string().trim().max(1000).optional().or(z.literal("")),
 });
 
@@ -29,60 +31,62 @@ export async function POST(request: Request) {
     );
   }
   const d = parsed.data;
+  const now = new Date();
+  const ids = Array.from(new Set(d.creneauIds));
 
-  // Vérifie la disponibilité réelle du créneau (anti-surréservation).
-  const creneau = await prisma.creneau.findUnique({
-    where: { id: d.creneauId },
-    include: {
-      reservations: {
-        where: { statut: { not: "ANNULEE" } },
-        select: { nombrePersonnes: true },
-      },
-    },
-  });
+  const result = await prisma
+    .$transaction(async (tx) => {
+      const beneficiaire = await tx.beneficiaire.create({
+        data: {
+          nom: d.nomClient,
+          telephone: d.telephone,
+          email: d.email || null,
+          adresse: d.adresse || null,
+          besoinsParticuliers: d.besoinsParticuliers || null,
+        },
+      });
 
-  if (!creneau || !creneau.actif || creneau.date < new Date()) {
+      let retenus = 0;
+      let ignores = 0;
+      for (const creneauId of ids) {
+        const creneau = await tx.creneau.findUnique({
+          where: { id: creneauId },
+          select: { actif: true, pedaleurId: true, date: true },
+        });
+        if (!creneau || !creneau.actif || creneau.pedaleurId || creneau.date < now) {
+          ignores++;
+          continue;
+        }
+        const count = await tx.disponibilite.count({
+          where: { creneauId, statut: { in: ["EN_ATTENTE", "CONFIRMEE"] } },
+        });
+        if (count >= 2) {
+          ignores++;
+          continue;
+        }
+        await tx.disponibilite.create({
+          data: { creneauId, beneficiaireId: beneficiaire.id },
+        });
+        retenus++;
+      }
+
+      if (retenus === 0) throw new Error("AUCUN");
+      return { retenus, ignores };
+    })
+    .catch((e: unknown) => {
+      if (e instanceof Error && e.message === "AUCUN") return null;
+      throw e;
+    });
+
+  if (!result) {
     return NextResponse.json(
-      { error: "Ce créneau n'est plus disponible." },
+      { error: "Ces créneaux ne sont plus disponibles. Réessayez." },
       { status: 409 }
     );
   }
 
-  const occupees = creneau.reservations.reduce(
-    (t: number, r: { nombrePersonnes: number }) => t + r.nombrePersonnes,
-    0
+  return NextResponse.json(
+    { ok: true, retenus: result.retenus, ignores: result.ignores },
+    { status: 201 }
   );
-  const restantes = creneau.capaciteMax - occupees;
-  if (d.nombrePersonnes > restantes) {
-    return NextResponse.json(
-      {
-        error:
-          restantes <= 0
-            ? "Ce créneau est complet."
-            : `Il ne reste que ${restantes} place(s) sur ce créneau.`,
-      },
-      { status: 409 }
-    );
-  }
-
-  const reservation = await prisma.reservation.create({
-    data: {
-      creneauId: d.creneauId,
-      nomClient: d.nomClient,
-      telephone: d.telephone,
-      email: d.email || null,
-      adresse: d.adresse || null,
-      nombrePersonnes: d.nombrePersonnes,
-      besoinsParticuliers: d.besoinsParticuliers || null,
-      source: "PUBLIC",
-    },
-  });
-
-  // Notifications (n'interrompent pas la réponse en cas d'échec SMTP).
-  await Promise.allSettled([
-    envoyerConfirmationClient(reservation, creneau),
-    envoyerAlerteEquipe(reservation, creneau),
-  ]);
-
-  return NextResponse.json({ ok: true, id: reservation.id }, { status: 201 });
 }

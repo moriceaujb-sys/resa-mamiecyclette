@@ -32,3 +32,6 @@ yarn-error.log*
 
 # prisma
 /prisma/*.db
+
+# fichiers obsolètes (ancien modèle) à supprimer
+/_obsolete
