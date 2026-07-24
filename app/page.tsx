@@ -11,6 +11,9 @@ export default async function Page() {
   return (
     <div>
       <section className="mb-8 rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+        <span className="mb-3 inline-block rounded-full bg-marine-100 px-3 py-1 text-sm font-semibold text-marine-700">
+          Respirez la liberté !
+        </span>
         <h1 className="text-3xl font-bold text-marine-700 sm:text-4xl">
           Réservez votre balade en triporteur
         </h1>

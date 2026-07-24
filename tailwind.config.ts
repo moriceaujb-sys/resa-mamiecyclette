@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 
+// Palette inspirée de mamiecyclette.fr : orange chaleureux (#f7a533) sur fond crème.
+// Les classes "marine" (couleur de marque) et "soleil" (accent) sont réutilisées
+// par tous les composants — changer ces valeurs restyle l'ensemble du site.
 const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,16 +11,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Couleur de marque (oranges Mamiecyclette)
         marine: {
-          50: "#eef6f9",
-          100: "#d3e7ef",
-          500: "#2b7a99",
-          600: "#236478",
-          700: "#1c4f5f",
+          50: "#fdf5e9",
+          100: "#fbe2ba",
+          400: "#f7a533",
+          500: "#d47611",
+          600: "#b8620c",
+          700: "#8f4c0a",
         },
+        // Accent (grand bouton d'appel a l'action)
         soleil: {
-          400: "#f4b942",
-          500: "#e8a317",
+          400: "#f7a533",
+          500: "#e8951f",
         },
       },
       fontFamily: {
