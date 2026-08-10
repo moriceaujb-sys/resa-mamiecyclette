@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         throw new Error("INDISPO");
       }
       const enAttente = creneau.disponibilites;
-      if (enAttente.length < 2) throw new Error("PAS_ASSEZ");
+      if (enAttente.length < 1) throw new Error("PAS_ASSEZ");
       const beneficiaireIds = enAttente.map((d) => d.beneficiaireId);
 
       // Verrouiller le créneau sur ce pédaleur.
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   }
   if (ok === "PAS_ASSEZ") {
     return NextResponse.json(
-      { error: "Ce créneau n'a plus 2 bénéficiaires." },
+      { error: "Ce créneau n'a plus de bénéficiaire en attente." },
       { status: 409 }
     );
   }

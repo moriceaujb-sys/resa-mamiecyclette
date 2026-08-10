@@ -81,7 +81,7 @@ export default function Dashboard({
           Balades à confirmer
         </h2>
         <p className="mb-4 text-sm text-slate-500">
-          Ces créneaux ont déjà 2 bénéficiaires prêts — il ne manque que vous.
+          Ces créneaux ont au moins un bénéficiaire. Vous pouvez en prendre un même s'il n'y a qu'une personne — un 2e passager pourra rejoindre ensuite.
         </p>
         {aConfirmer.length === 0 ? (
           <p className="rounded-xl bg-white p-6 text-slate-500 shadow-sm">
@@ -101,7 +101,7 @@ export default function Dashboard({
                     {fmt(c.date)}
                   </div>
                   <div className="text-sm text-slate-500">
-                    📍 {c.lieuDepart} · 👥 2 bénéficiaires prêts · ⏱️{" "}
+                    📍 {c.lieuDepart} · 👥 {c.nbBeneficiaires} bénéficiaire{c.nbBeneficiaires > 1 ? "s" : ""} · ⏱️{" "}
                     {c.dureeMinutes} min
                   </div>
                 </div>
@@ -139,6 +139,11 @@ export default function Dashboard({
                     </div>
                   ))}
                 </div>
+                {b.beneficiaires.length < 2 && (
+                  <div className="mt-1 text-sm font-medium text-marine-600">
+                    En attente d&apos;un 2e passager…
+                  </div>
+                )}
               </div>
             ))}
           </div>

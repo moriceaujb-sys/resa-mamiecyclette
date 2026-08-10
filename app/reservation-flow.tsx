@@ -29,9 +29,11 @@ export default function ReservationFlow({
 }) {
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [envoi, setEnvoi] = useState(false);
-  const [resultat, setResultat] = useState<{ retenus: number; ignores: number } | null>(
-    null
-  );
+  const [resultat, setResultat] = useState<{
+    retenus: number;
+    ignores: number;
+    confirmeDirect: boolean;
+  } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [nbJours, setNbJours] = useState(PAS);
   const sentinelle = useRef<HTMLDivElement | null>(null);
@@ -102,7 +104,12 @@ export default function ReservationFlow({
       });
       const data = await res.json();
       if (!res.ok) setErreur(data.error || "Une erreur est survenue.");
-      else setResultat({ retenus: data.retenus, ignores: data.ignores });
+      else
+        setResultat({
+          retenus: data.retenus,
+          ignores: data.ignores,
+          confirmeDirect: !!data.confirmeDirect,
+        });
     } catch {
       setErreur("Impossible de contacter le serveur. Réessayez.");
     } finally {
@@ -114,21 +121,35 @@ export default function ReservationFlow({
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
         <div className="text-5xl" aria-hidden>
-          🎉
+          {resultat.confirmeDirect ? "✅" : "🎉"}
         </div>
-        <h2 className="mt-4 text-2xl font-bold text-marine-700">
-          Vos disponibilités sont enregistrées !
-        </h2>
-        <p className="mt-2 text-lg text-slate-600">
-          {resultat.retenus} créneau{resultat.retenus > 1 ? "x" : ""} retenu
-          {resultat.retenus > 1 ? "s" : ""}.
-          {resultat.ignores > 0 &&
-            ` (${resultat.ignores} n'étaient plus disponibles.)`}
-        </p>
-        <p className="mt-2 text-slate-600">
-          Dès qu&apos;un pédaleur confirme une balade, nous vous prévenons. Vos
-          autres disponibilités sont alors libérées automatiquement.
-        </p>
+        {resultat.confirmeDirect ? (
+          <>
+            <h2 className="mt-4 text-2xl font-bold text-marine-700">
+              Votre balade est confirmée !
+            </h2>
+            <p className="mt-2 text-lg text-slate-600">
+              Un pédaleur était déjà prêt sur ce créneau : votre balade est
+              réservée. Nous vous recontactons avec les détails.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="mt-4 text-2xl font-bold text-marine-700">
+              Vos disponibilités sont enregistrées !
+            </h2>
+            <p className="mt-2 text-lg text-slate-600">
+              {resultat.retenus} créneau{resultat.retenus > 1 ? "x" : ""} retenu
+              {resultat.retenus > 1 ? "s" : ""}.
+              {resultat.ignores > 0 &&
+                ` (${resultat.ignores} n'étaient plus disponibles.)`}
+            </p>
+            <p className="mt-2 text-slate-600">
+              Dès qu&apos;un pédaleur confirme une balade, nous vous prévenons.
+              Vos autres disponibilités sont alors libérées automatiquement.
+            </p>
+          </>
+        )}
         <button
           className="btn-ghost mt-6"
           onClick={() => {
@@ -186,7 +207,11 @@ export default function ReservationFlow({
                 <div className="flex flex-wrap gap-2">
                   {liste.map((c) => {
                     const sel = selection.has(c.id);
+                    const pedaleurPret = c.aPedaleur;
                     const chercheMoitie = c.nbBeneficiaires === 1;
+                    let sousTitre = "Libre";
+                    if (pedaleurPret) sousTitre = "🚲 Un pédaleur est prêt !";
+                    else if (chercheMoitie) sousTitre = "Une personne attend !";
                     return (
                       <button
                         key={c.id}
@@ -195,6 +220,8 @@ export default function ReservationFlow({
                         className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
                           sel
                             ? "border-marine-500 bg-marine-500 text-white"
+                            : pedaleurPret
+                            ? "border-green-500 bg-green-50 hover:bg-green-100"
                             : "border-slate-300 bg-white hover:border-marine-500 hover:bg-marine-50"
                         }`}
                       >
@@ -215,12 +242,14 @@ export default function ReservationFlow({
                             className={`text-sm ${
                               sel
                                 ? "text-marine-50"
+                                : pedaleurPret
+                                ? "font-medium text-green-700"
                                 : chercheMoitie
                                 ? "font-medium text-marine-600"
                                 : "text-slate-500"
                             }`}
                           >
-                            {chercheMoitie ? "Une personne attend !" : "Libre"}
+                            {sousTitre}
                           </span>
                         </span>
                       </button>

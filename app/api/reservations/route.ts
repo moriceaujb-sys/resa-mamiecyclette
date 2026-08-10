@@ -46,14 +46,21 @@ export async function POST(request: Request) {
         },
       });
 
-      let retenus = 0;
+      let enAttente = 0;
       let ignores = 0;
+      let confirmeDirect = false; // le bénéficiaire a rejoint un créneau déjà pris par un pédaleur
+
       for (const creneauId of ids) {
+        // Si le bénéficiaire a déjà trouvé une balade dans ce lot, on ignore le reste.
+        if (confirmeDirect) {
+          ignores++;
+          continue;
+        }
         const creneau = await tx.creneau.findUnique({
           where: { id: creneauId },
           select: { actif: true, pedaleurId: true, date: true },
         });
-        if (!creneau || !creneau.actif || creneau.pedaleurId || creneau.date < now) {
+        if (!creneau || !creneau.actif || creneau.date < now) {
           ignores++;
           continue;
         }
@@ -64,14 +71,31 @@ export async function POST(request: Request) {
           ignores++;
           continue;
         }
-        await tx.disponibilite.create({
-          data: { creneauId, beneficiaireId: beneficiaire.id },
-        });
-        retenus++;
+        if (creneau.pedaleurId) {
+          // Un pédaleur est déjà prêt sur ce créneau → balade confirmée immédiatement.
+          await tx.disponibilite.create({
+            data: { creneauId, beneficiaireId: beneficiaire.id, statut: "CONFIRMEE" },
+          });
+          confirmeDirect = true;
+        } else {
+          await tx.disponibilite.create({
+            data: { creneauId, beneficiaireId: beneficiaire.id },
+          });
+          enAttente++;
+        }
       }
 
-      if (retenus === 0) throw new Error("AUCUN");
-      return { retenus, ignores };
+      // Si le bénéficiaire a été confirmé sur un créneau, on libère ses autres
+      // disponibilités en attente (il ne fait qu'une balade).
+      if (confirmeDirect) {
+        await tx.disponibilite.updateMany({
+          where: { beneficiaireId: beneficiaire.id, statut: "EN_ATTENTE" },
+          data: { statut: "LIBEREE" },
+        });
+      }
+
+      if (!confirmeDirect && enAttente === 0) throw new Error("AUCUN");
+      return { confirmeDirect, retenus: confirmeDirect ? 1 : enAttente, ignores };
     })
     .catch((e: unknown) => {
       if (e instanceof Error && e.message === "AUCUN") return null;
@@ -86,7 +110,12 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json(
-    { ok: true, retenus: result.retenus, ignores: result.ignores },
+    {
+      ok: true,
+      confirmeDirect: result.confirmeDirect,
+      retenus: result.retenus,
+      ignores: result.ignores,
+    },
     { status: 201 }
   );
 }

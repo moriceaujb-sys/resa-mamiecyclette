@@ -35,13 +35,15 @@ export type CreneauBeneficiaire = {
   lieuDepart: string;
   nbBeneficiaires: number;
   placesRestantes: number;
+  aPedaleur: boolean;
 };
 
-// Créneaux réservables : actifs, futurs, sans pédaleur, moins de 2 bénéficiaires.
+// Créneaux réservables par un bénéficiaire : actifs, futurs, moins de 2 bénéficiaires.
+// (Y compris ceux qui ont déjà un pédaleur mais où il reste une place — Option A.)
 export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]> {
   const now = new Date();
   const creneaux = await prisma.creneau.findMany({
-    where: { actif: true, date: { gte: now }, pedaleurId: null },
+    where: { actif: true, date: { gte: now } },
     orderBy: { date: "asc" },
     include: {
       disponibilites: { where: { statut: { in: [...ACTIVES] } }, select: { id: true } },
@@ -55,6 +57,7 @@ export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]
       lieuDepart: c.lieuDepart,
       nbBeneficiaires: c.disponibilites.length,
       placesRestantes: Math.max(0, 2 - c.disponibilites.length),
+      aPedaleur: c.pedaleurId != null,
     }))
     .filter((c) => c.nbBeneficiaires < 2);
 }
@@ -68,7 +71,7 @@ export type CreneauPedaleur = {
   nbBeneficiaires: number;
 };
 
-// Créneaux à confirmer par un pédaleur : 2 bénéficiaires en attente, sans pédaleur.
+// Créneaux qu'un pédaleur peut prendre : au moins 1 bénéficiaire en attente, sans pédaleur.
 export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
   const now = new Date();
   const creneaux = await prisma.creneau.findMany({
@@ -86,7 +89,7 @@ export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
       lieuDepart: c.lieuDepart,
       nbBeneficiaires: c.disponibilites.length,
     }))
-    .filter((c) => c.nbBeneficiaires >= 2);
+    .filter((c) => c.nbBeneficiaires >= 1);
 }
 
 export type BaladePedaleur = {
