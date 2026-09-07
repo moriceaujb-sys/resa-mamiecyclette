@@ -35,6 +35,24 @@ function fmt(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Valeur pour un <input type="datetime-local"> en heure de Paris.
+function toInputValue(iso: string): string {
+  const p: Record<string, string> = {};
+  for (const part of new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso)))
+    p[part.type] = part.value;
+  let h = p.hour;
+  if (h === "24") h = "00";
+  return `${p.year}-${p.month}-${p.day}T${h}:${p.minute}`;
+}
+
 const badge: Record<StatutCreneau, string> = {
   DISPO: "bg-slate-100 text-slate-500",
   CHERCHE_MOITIE: "bg-soleil-400/25 text-marine-700",
@@ -49,28 +67,67 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
   const [occupe, setOccupe] = useState(false);
   const [montrerInactifs, setMontrerInactifs] = useState(false);
   const [ouverts, setOuverts] = useState<Set<string>>(new Set());
+  const [ajoutOuvert, setAjoutOuvert] = useState(false);
+  const [editionId, setEditionId] = useState<string | null>(null);
+
+  async function api(method: string, body: unknown): Promise<boolean> {
+    setOccupe(true);
+    try {
+      const res = await fetch("/api/admin/creneaux", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.error || "Action impossible.");
+        return false;
+      }
+      router.refresh();
+      return true;
+    } finally {
+      setOccupe(false);
+    }
+  }
 
   async function deconnexion() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.refresh();
   }
 
-  async function basculerActif(id: string, actif: boolean) {
-    setOccupe(true);
-    try {
-      const res = await fetch("/api/admin/creneaux", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, actif }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        alert(d.error || "Action impossible.");
-      }
-      router.refresh();
-    } finally {
-      setOccupe(false);
+  async function ajouter(formData: FormData) {
+    const date = String(formData.get("date") || "");
+    if (!date) {
+      alert("Choisissez une date et une heure.");
+      return;
     }
+    const ok = await api("POST", {
+      date: new Date(date).toISOString(),
+      dureeMinutes: Number(formData.get("dureeMinutes") || 60),
+      lieuDepart: String(formData.get("lieuDepart") || "Devant le CCAS"),
+    });
+    if (ok) setAjoutOuvert(false);
+  }
+
+  async function modifier(id: string, formData: FormData) {
+    const date = String(formData.get("date") || "");
+    const ok = await api("PATCH", {
+      id,
+      date: date ? new Date(date).toISOString() : undefined,
+      dureeMinutes: Number(formData.get("dureeMinutes") || 60),
+      lieuDepart: String(formData.get("lieuDepart") || "Devant le CCAS"),
+    });
+    if (ok) setEditionId(null);
+  }
+
+  async function supprimer(id: string) {
+    if (
+      !confirm(
+        "Supprimer ce créneau ? Les réservations liées seront également supprimées. Il ne sera pas régénéré."
+      )
+    )
+      return;
+    await api("DELETE", { id });
   }
 
   function basculerDetails(id: string) {
@@ -127,8 +184,8 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
 
       {onglet === "creneaux" && (
         <>
-          <div className="mb-4 flex flex-wrap items-center gap-4 text-sm">
-            <label className="flex items-center gap-2 text-slate-600">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
                 type="checkbox"
                 checked={montrerInactifs}
@@ -136,7 +193,49 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
               />
               Afficher les créneaux désactivés
             </label>
+            <button
+              onClick={() => setAjoutOuvert((v) => !v)}
+              className="btn-primary text-sm"
+            >
+              {ajoutOuvert ? "Annuler" : "+ Ajouter un créneau"}
+            </button>
           </div>
+
+          {ajoutOuvert && (
+            <form
+              action={ajouter}
+              className="mb-4 grid gap-3 rounded-xl bg-white p-5 shadow-sm sm:grid-cols-4"
+            >
+              <div className="sm:col-span-2">
+                <label className="label text-sm">Date et heure</label>
+                <input type="datetime-local" name="date" required className="champ text-base" />
+              </div>
+              <div>
+                <label className="label text-sm">Durée (min)</label>
+                <input
+                  type="number"
+                  name="dureeMinutes"
+                  min={5}
+                  max={480}
+                  defaultValue={60}
+                  className="champ text-base"
+                />
+              </div>
+              <div>
+                <label className="label text-sm">Lieu de départ</label>
+                <input
+                  name="lieuDepart"
+                  defaultValue="Devant le CCAS"
+                  className="champ text-base"
+                />
+              </div>
+              <div className="sm:col-span-4">
+                <button type="submit" disabled={occupe} className="btn-primary text-base">
+                  Ajouter le créneau
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="space-y-2">
             {visibles.length === 0 && (
@@ -146,6 +245,7 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
             )}
             {visibles.map((c) => {
               const ouvert = ouverts.has(c.id);
+              const enEdition = editionId === c.id;
               return (
                 <div key={c.id} className="rounded-xl bg-white p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -165,7 +265,7 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
                       </span>
                       <span className="text-sm text-slate-400">{c.lieuDepart}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <button
                         onClick={() => basculerDetails(c.id)}
                         className="rounded-lg px-3 py-2 text-sm font-medium text-marine-600 hover:bg-marine-50"
@@ -173,8 +273,14 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
                         {ouvert ? "Masquer" : "Détails"}
                       </button>
                       <button
+                        onClick={() => setEditionId(enEdition ? null : c.id)}
+                        className="rounded-lg px-3 py-2 text-sm font-medium text-marine-600 hover:bg-marine-50"
+                      >
+                        {enEdition ? "Fermer" : "Modifier"}
+                      </button>
+                      <button
                         disabled={occupe}
-                        onClick={() => basculerActif(c.id, !c.actif)}
+                        onClick={() => api("PATCH", { id: c.id, actif: !c.actif })}
                         className={`rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-50 ${
                           c.actif
                             ? "bg-slate-200 text-slate-600 hover:bg-slate-300"
@@ -183,8 +289,56 @@ export default function Dashboard({ creneaux }: { creneaux: CreneauAdmin[] }) {
                       >
                         {c.actif ? "Désactiver" : "Réactiver"}
                       </button>
+                      <button
+                        disabled={occupe}
+                        onClick={() => supprimer(c.id)}
+                        className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        Supprimer
+                      </button>
                     </div>
                   </div>
+
+                  {enEdition && (
+                    <form
+                      action={(fd) => modifier(c.id, fd)}
+                      className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-4"
+                    >
+                      <div className="sm:col-span-2">
+                        <label className="label text-sm">Date et heure</label>
+                        <input
+                          type="datetime-local"
+                          name="date"
+                          defaultValue={toInputValue(c.date)}
+                          className="champ text-base"
+                        />
+                      </div>
+                      <div>
+                        <label className="label text-sm">Durée (min)</label>
+                        <input
+                          type="number"
+                          name="dureeMinutes"
+                          min={5}
+                          max={480}
+                          defaultValue={c.dureeMinutes}
+                          className="champ text-base"
+                        />
+                      </div>
+                      <div>
+                        <label className="label text-sm">Lieu de départ</label>
+                        <input
+                          name="lieuDepart"
+                          defaultValue={c.lieuDepart}
+                          className="champ text-base"
+                        />
+                      </div>
+                      <div className="sm:col-span-4">
+                        <button type="submit" disabled={occupe} className="btn-primary text-base">
+                          Enregistrer
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
                   {ouvert && (
                     <div className="mt-4 space-y-3 border-t border-slate-100 pt-3">
@@ -297,27 +451,28 @@ function Aide() {
 
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <h2 className="mb-2 text-lg font-bold text-marine-700">
+          Gérer les créneaux
+        </h2>
+        <p className="text-slate-700">
+          Les créneaux se génèrent <strong>automatiquement</strong> (lundi,
+          mercredi, vendredi à 10h, 11h, 15h et 16h, sur les mois à venir). Dans
+          l&apos;onglet <strong>Créneaux</strong>, vous pouvez en plus :{" "}
+          <strong>ajouter</strong> un créneau exceptionnel, <strong>modifier</strong>{" "}
+          (date, heure, durée, lieu), <strong>désactiver</strong> ou{" "}
+          <strong>supprimer</strong> un créneau. Vos modifications sont
+          définitives : la génération automatique ne les réécrase jamais.
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-marine-700">
           La règle de libération
         </h2>
         <p className="text-slate-700">
           Quand un pédaleur confirme un créneau, <strong>seuls les bénéficiaires
           de ce créneau</strong> voient leurs <em>autres</em> disponibilités
-          libérées (ils ont trouvé leur balade). Tous les autres bénéficiaires —
-          ceux qui n&apos;ont pas encore de balade — <strong>conservent
-          l&apos;intégralité de leurs créneaux</strong>. Un créneau qu&apos;un
-          bénéficiaire quitte ainsi repasse simplement en 1/2 ou 0/2 : personne
-          n&apos;est jamais supprimé.
-        </p>
-      </div>
-
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-lg font-bold text-marine-700">Vos actions ici</h2>
-        <p className="text-slate-700">
-          Dans l&apos;onglet <strong>Créneaux</strong>, vous voyez le statut de
-          chaque créneau, vous pouvez <strong>activer / désactiver</strong> un
-          créneau, et déplier les <strong>détails</strong> (coordonnées des
-          bénéficiaires et du pédaleur). Les créneaux se génèrent
-          automatiquement sur les mois à venir.
+          libérées (ils ont trouvé leur balade). Tous les autres bénéficiaires
+          conservent l&apos;intégralité de leurs créneaux.
         </p>
       </div>
     </div>

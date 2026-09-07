@@ -6,8 +6,8 @@ export const JOURS_OUVERTS = [1, 3, 5]; // 1 = lundi, 3 = mercredi, 5 = vendredi
 export const HORAIRES = [
   { h: 10, min: 0 },
   { h: 11, min: 0 },
-  { h: 14, min: 0 },
-  { h: 15, min: 30 },
+  { h: 15, min: 0 },
+  { h: 16, min: 0 },
 ];
 export const DUREE_MINUTES = 60; // créneaux d'une heure
 export const CAPACITE = 2; // places par créneau (capacité du triporteur)

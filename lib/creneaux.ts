@@ -8,23 +8,38 @@ const ACTIVES = ["EN_ATTENTE", "CONFIRMEE"] as const;
 // Crée en base les créneaux récurrents manquants jusqu'à l'horizon (idempotent).
 export async function ensureCreneaux(): Promise<void> {
   const now = new Date();
-  const to = new Date(now.getTime() + HORIZON_JOURS * 24 * 3600 * 1000);
-  const slots = genererSlots(now, to);
-  if (slots.length === 0) return;
+  const horizon = new Date(now.getTime() + HORIZON_JOURS * 24 * 3600 * 1000);
 
-  const existants = await prisma.creneau.findMany({
-    where: { date: { gte: now, lte: to } },
-    select: { date: true },
+  // Repère glissant : on ne génère que les créneaux au-delà de ce qui a déjà été
+  // généré, pour ne jamais réécraser une modification ou suppression manuelle.
+  const config = await prisma.configuration.upsert({
+    where: { id: 1 },
+    create: { id: 1 },
+    update: {},
   });
-  const dejaLa = new Set(existants.map((c: { date: Date }) => c.date.getTime()));
+  const depuis =
+    config.genereJusquau && config.genereJusquau > now ? config.genereJusquau : now;
+  if (depuis >= horizon) return;
 
-  const aCreer = slots
-    .filter((s) => !dejaLa.has(s.getTime()))
-    .map((s) => ({ date: s, dureeMinutes: DUREE_MINUTES, lieuDepart: LIEU_DEPART }));
-
-  if (aCreer.length > 0) {
-    await prisma.creneau.createMany({ data: aCreer, skipDuplicates: true });
+  const slots = genererSlots(depuis, horizon);
+  if (slots.length > 0) {
+    const existants = await prisma.creneau.findMany({
+      where: { date: { gte: depuis, lte: horizon } },
+      select: { date: true },
+    });
+    const dejaLa = new Set(existants.map((c: { date: Date }) => c.date.getTime()));
+    const aCreer = slots
+      .filter((s) => !dejaLa.has(s.getTime()))
+      .map((s) => ({ date: s, dureeMinutes: DUREE_MINUTES, lieuDepart: LIEU_DEPART }));
+    if (aCreer.length > 0) {
+      await prisma.creneau.createMany({ data: aCreer, skipDuplicates: true });
+    }
   }
+
+  await prisma.configuration.update({
+    where: { id: 1 },
+    data: { genereJusquau: horizon },
+  });
 }
 
 // ---------- Côté bénéficiaire ----------

@@ -70,3 +70,10 @@ model Pedaleur {
   creneaux       Creneau[]
   createdAt      DateTime  @default(now())
 }
+
+// Réglages internes (singleton). genereJusquau = date jusqu'à laquelle les
+// créneaux récurrents ont déjà été générés (repère glissant).
+model Configuration {
+  id            Int       @id @default(1)
+  genereJusquau DateTime?
+}
