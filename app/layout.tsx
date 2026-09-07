@@ -21,28 +21,6 @@ export const metadata: Metadata = {
     "Réservez une balade en triporteur avec le CCAS. Un moment convivial, en toute simplicité.",
 };
 
-function Roue() {
-  return (
-    <svg
-      width="38"
-      height="38"
-      viewBox="0 0 40 40"
-      fill="none"
-      aria-hidden
-      className="shrink-0"
-    >
-      <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="2.5" />
-      <circle cx="20" cy="20" r="3" fill="currentColor" />
-      <g stroke="currentColor" strokeWidth="1.4">
-        <line x1="20" y1="4" x2="20" y2="36" />
-        <line x1="4" y1="20" x2="36" y2="20" />
-        <line x1="8.7" y1="8.7" x2="31.3" y2="31.3" />
-        <line x1="31.3" y1="8.7" x2="8.7" y2="31.3" />
-      </g>
-    </svg>
-  );
-}
-
 export default function RootLayout({
   children,
 }: {
@@ -52,31 +30,64 @@ export default function RootLayout({
     <html lang="fr" className={`${montserrat.variable} ${grandHotel.variable}`}>
       <body>
         <header className="border-b border-marine-100 bg-white">
-          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 text-marine-700">
-              <Roue />
-              <span className="font-script text-3xl leading-none">
-                Mamie Cyclette
-              </span>
+          <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-3">
+            <Link href="/" aria-label="Mamie Cyclette — accueil" className="flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/mamie-cyclette-logo.png"
+                alt="Mamie Cyclette"
+                className="h-11 w-auto"
+              />
             </Link>
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-marine-600 hover:text-marine-700"
-            >
-              Espace équipe
-            </Link>
+            <div className="flex items-center gap-4 sm:gap-5">
+              <a
+                href="https://www.angers.fr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Site de la Ville d'Angers"
+                className="shrink-0"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/angers-logo.svg"
+                  alt="Ville d'Angers"
+                  className="h-10 w-auto"
+                />
+              </a>
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-marine-600 hover:text-marine-700"
+              >
+                Espace équipe
+              </Link>
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
-        <footer className="mt-12 border-t border-marine-100 py-6">
-          <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 px-4 text-center text-sm text-slate-600">
+        <footer className="mt-12 border-t border-marine-100 py-8">
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 px-4 text-center text-sm text-slate-600">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/mamie-cyclette-logo.png"
+              alt="Mamie Cyclette"
+              className="h-14 w-auto"
+            />
             <div>Mamie Cyclette · Balades en triporteur du CCAS</div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-2">
               <span>En partenariat avec la Ville d&apos;Angers</span>
-              {/* Emplacement du logo officiel de la Ville d'Angers.
-                  Déposez le fichier dans public/ (ex. angers.png) puis
-                  décommentez la ligne ci-dessous. */}
-              {/* <img src="/angers.png" alt="Ville d'Angers" className="h-10" /> */}
+              <a
+                href="https://www.angers.fr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Site de la Ville d'Angers"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/angers-logo.svg"
+                  alt="Ville d'Angers"
+                  className="h-14 w-auto"
+                />
+              </a>
             </div>
           </div>
         </footer>
