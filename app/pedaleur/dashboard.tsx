@@ -69,7 +69,7 @@ export default function Dashboard({
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-marine-700">Bonjour {nom} 👋</h1>
-          <p className="text-slate-500">Merci de faire pédaler la solidarité !</p>
+          <p className="text-slate-600">Merci de faire pédaler la solidarité !</p>
         </div>
         <button onClick={deconnexion} className="btn-ghost text-base">
           Se déconnecter
@@ -80,11 +80,11 @@ export default function Dashboard({
         <h2 className="mb-1 text-xl font-bold text-marine-700">
           Balades à confirmer
         </h2>
-        <p className="mb-4 text-sm text-slate-500">
+        <p className="mb-4 text-sm text-slate-600">
           Ces créneaux ont déjà 2 bénéficiaires prêts — il ne manque que vous.
         </p>
         {aConfirmer.length === 0 ? (
-          <p className="rounded-xl bg-white p-6 text-slate-500 shadow-sm">
+          <p className="rounded-xl bg-white p-6 text-slate-600 shadow-sm">
             Aucun créneau à confirmer pour l&apos;instant. Revenez plus tard : dès
             que 2 bénéficiaires se positionnent sur un même créneau, il apparaît
             ici.
@@ -100,7 +100,7 @@ export default function Dashboard({
                   <div className="font-semibold capitalize text-slate-800">
                     {fmt(c.date)}
                   </div>
-                  <div className="text-sm text-slate-500">
+                  <div className="text-sm text-slate-600">
                     📍 {c.lieuDepart} · 👥 {c.nbBeneficiaires} bénéficiaire{c.nbBeneficiaires > 1 ? "s" : ""} · ⏱️{" "}
                     {c.dureeMinutes} min
                   </div>
@@ -121,7 +121,7 @@ export default function Dashboard({
       <section>
         <h2 className="mb-4 text-xl font-bold text-marine-700">Mes balades</h2>
         {mesBalades.length === 0 ? (
-          <p className="rounded-xl bg-white p-6 text-slate-500 shadow-sm">
+          <p className="rounded-xl bg-white p-6 text-slate-600 shadow-sm">
             Vous n&apos;avez pas encore confirmé de balade.
           </p>
         ) : (
@@ -131,7 +131,7 @@ export default function Dashboard({
                 <div className="font-semibold capitalize text-slate-800">
                   {fmt(b.date)}
                 </div>
-                <div className="text-sm text-slate-500">📍 {b.lieuDepart}</div>
+                <div className="text-sm text-slate-600">📍 {b.lieuDepart}</div>
                 <div className="mt-2 space-y-1">
                   {b.beneficiaires.map((p, i) => (
                     <div key={i} className="text-sm text-slate-600">

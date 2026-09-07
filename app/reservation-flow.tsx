@@ -183,7 +183,7 @@ export default function ReservationFlow({
         <h2 className="mb-1 text-xl font-bold text-marine-700">
           1. Choisissez vos créneaux
         </h2>
-        <p className="mb-4 text-sm text-slate-500">
+        <p className="mb-4 text-sm text-slate-600">
           Vous pouvez en sélectionner plusieurs, ou une journée entière.
         </p>
         <div className="space-y-5">
@@ -193,7 +193,7 @@ export default function ReservationFlow({
             return (
               <div key={jour}>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-base font-semibold capitalize text-slate-500">
+                  <h3 className="text-base font-semibold capitalize text-slate-600">
                     {jour}
                   </h3>
                   <button
@@ -246,7 +246,7 @@ export default function ReservationFlow({
                                 ? "font-medium text-green-700"
                                 : chercheMoitie
                                 ? "font-medium text-marine-600"
-                                : "text-slate-500"
+                                : "text-slate-600"
                             }`}
                           >
                             {sousTitre}
@@ -264,7 +264,7 @@ export default function ReservationFlow({
         {nbJours < parJour.length && (
           <div
             ref={sentinelle}
-            className="py-8 text-center text-sm text-slate-400"
+            className="py-8 text-center text-sm text-slate-600"
           >
             Chargement d&apos;autres dates…
           </div>

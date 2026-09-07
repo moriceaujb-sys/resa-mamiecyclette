@@ -55,7 +55,7 @@ function toInputValue(iso: string): string {
 }
 
 const badge: Record<StatutCreneau, string> = {
-  DISPO: "bg-slate-100 text-slate-500",
+  DISPO: "bg-slate-100 text-slate-600",
   CHERCHE_MOITIE: "bg-soleil-400/25 text-marine-700",
   COMPLET_ATTENTE_PEDALEUR: "bg-marine-100 text-marine-700",
   PEDALEUR_CHERCHE_PASSAGER: "bg-sky-100 text-sky-700",
@@ -185,7 +185,7 @@ export default function CreneauxManager({
 
       <div className="space-y-2">
         {visibles.length === 0 && (
-          <p className="rounded-xl bg-white p-6 text-slate-500 shadow-sm">
+          <p className="rounded-xl bg-white p-6 text-slate-600 shadow-sm">
             Aucun créneau à afficher.
           </p>
         )}
@@ -203,12 +203,12 @@ export default function CreneauxManager({
                   </span>
                   <span
                     className={`font-medium capitalize ${
-                      c.actif ? "text-slate-800" : "text-slate-400 line-through"
+                      c.actif ? "text-slate-800" : "text-slate-600 line-through"
                     }`}
                   >
                     {fmt(c.date)}
                   </span>
-                  <span className="text-sm text-slate-400">{c.lieuDepart}</span>
+                  <span className="text-sm text-slate-600">{c.lieuDepart}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -237,7 +237,7 @@ export default function CreneauxManager({
                   <button
                     disabled={occupe}
                     onClick={() => supprimer(c.id)}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                   >
                     Supprimer
                   </button>
@@ -277,11 +277,11 @@ export default function CreneauxManager({
               {ouvert && (
                 <div className="mt-4 space-y-3 border-t border-slate-100 pt-3">
                   <div>
-                    <h4 className="mb-1 text-sm font-semibold text-slate-500">
+                    <h4 className="mb-1 text-sm font-semibold text-slate-600">
                       Bénéficiaires ({c.nbBeneficiaires}/2)
                     </h4>
                     {c.beneficiaires.length === 0 ? (
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-slate-600">
                         Aucun bénéficiaire pour l&apos;instant.
                       </p>
                     ) : (
@@ -304,13 +304,13 @@ export default function CreneauxManager({
                     )}
                   </div>
                   <div>
-                    <h4 className="mb-1 text-sm font-semibold text-slate-500">Pédaleur</h4>
+                    <h4 className="mb-1 text-sm font-semibold text-slate-600">Pédaleur</h4>
                     {c.pedaleur ? (
                       <p className="text-sm text-slate-600">
                         🚲 <strong>{c.pedaleur.nom}</strong> · ✉️ {c.pedaleur.email}
                       </p>
                     ) : (
-                      <p className="text-sm text-slate-400">Pas encore de pédaleur.</p>
+                      <p className="text-sm text-slate-600">Pas encore de pédaleur.</p>
                     )}
                   </div>
                 </div>

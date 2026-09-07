@@ -7,7 +7,7 @@
 }
 
 body {
-  @apply bg-marine-50 text-slate-800 antialiased;
+  @apply bg-creme font-sans text-slate-800 antialiased;
 }
 
 /* Champs de formulaire — grands et lisibles (public souvent âgé). */
@@ -18,6 +18,10 @@ body {
 
 .label {
   @apply mb-1 block text-base font-medium text-slate-700;
+}
+
+.champ::placeholder {
+  color: #64748b; /* slate-500 — contraste suffisant pour les indications */
 }
 
 .btn {

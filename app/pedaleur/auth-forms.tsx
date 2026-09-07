@@ -45,7 +45,7 @@ export default function AuthForms() {
     <div className="mx-auto max-w-sm">
       <div className="rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-marine-700">Espace pédaleur</h1>
-        <p className="mt-2 text-slate-500">
+        <p className="mt-2 text-slate-600">
           Connectez-vous pour confirmer des balades et emmener les bénéficiaires.
         </p>
         <div className="mt-4 flex gap-1 rounded-lg bg-slate-100 p-1">
@@ -60,7 +60,7 @@ export default function AuthForms() {
               className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
                 mode === m
                   ? "bg-white text-marine-700 shadow"
-                  : "text-slate-500 hover:text-marine-600"
+                  : "text-slate-600 hover:text-marine-600"
               }`}
             >
               {m === "connexion" ? "Connexion" : "Créer un compte"}

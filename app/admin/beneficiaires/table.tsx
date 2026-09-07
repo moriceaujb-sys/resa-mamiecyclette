@@ -27,7 +27,7 @@ export default function BeneficiairesTable({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-marine-700">
           Bénéficiaires{" "}
-          <span className="text-base font-normal text-slate-400">
+          <span className="text-base font-normal text-slate-600">
             ({beneficiaires.length})
           </span>
         </h1>
@@ -42,7 +42,7 @@ export default function BeneficiairesTable({
 
       <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
+          <thead className="border-b border-slate-100 text-xs uppercase text-slate-600">
             <tr>
               <th className="px-4 py-3">Nom et prénom</th>
               <th className="px-4 py-3">Téléphone</th>
@@ -55,7 +55,7 @@ export default function BeneficiairesTable({
           <tbody>
             {filtres.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-6 text-center text-slate-600">
                   Aucun bénéficiaire trouvé.
                 </td>
               </tr>
@@ -81,7 +81,7 @@ export default function BeneficiairesTable({
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-sm text-slate-400">
+      <p className="mt-3 text-sm text-slate-600">
         Cliquez sur une ligne pour ouvrir la fiche du bénéficiaire.
       </p>
     </div>

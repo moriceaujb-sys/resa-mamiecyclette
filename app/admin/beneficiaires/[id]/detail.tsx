@@ -25,7 +25,7 @@ const LIBELLE_DISPO: Record<string, string> = {
 const BADGE_DISPO: Record<string, string> = {
   EN_ATTENTE: "bg-soleil-400/25 text-marine-700",
   CONFIRMEE: "bg-green-100 text-green-700",
-  LIBEREE: "bg-slate-100 text-slate-500",
+  LIBEREE: "bg-slate-100 text-slate-600",
   ANNULEE: "bg-red-100 text-red-700",
 };
 
@@ -108,7 +108,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-marine-700">{b.nom}</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600">
               Fiche créée le {fmt(b.createdAt)}
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
             <button
               onClick={supprimerPersonne}
               disabled={occupe}
-              className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-lg bg-red-700 px-3 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50"
             >
               Supprimer
             </button>
@@ -169,19 +169,19 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
         ) : (
           <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-400">Téléphone</dt>
+              <dt className="text-slate-600">Téléphone</dt>
               <dd className="text-slate-800">{b.telephone}</dd>
             </div>
             <div>
-              <dt className="text-slate-400">Email</dt>
+              <dt className="text-slate-600">Email</dt>
               <dd className="text-slate-800">{b.email || "—"}</dd>
             </div>
             <div>
-              <dt className="text-slate-400">Adresse</dt>
+              <dt className="text-slate-600">Adresse</dt>
               <dd className="text-slate-800">{b.adresse || "—"}</dd>
             </div>
             <div>
-              <dt className="text-slate-400">Besoins particuliers</dt>
+              <dt className="text-slate-600">Besoins particuliers</dt>
               <dd className="text-slate-800">{b.besoinsParticuliers || "—"}</dd>
             </div>
           </dl>
@@ -193,7 +193,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
           Créneaux de ce bénéficiaire ({b.disponibilites.length})
         </h2>
         {b.disponibilites.length === 0 ? (
-          <p className="text-sm text-slate-400">Aucun créneau.</p>
+          <p className="text-sm text-slate-600">Aucun créneau.</p>
         ) : (
           <ul className="space-y-2">
             {b.disponibilites.map((d) => (
@@ -204,7 +204,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
                 <div className="flex flex-wrap items-center gap-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      BADGE_DISPO[d.statut] || "bg-slate-100 text-slate-500"
+                      BADGE_DISPO[d.statut] || "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {LIBELLE_DISPO[d.statut] || d.statut}
@@ -212,7 +212,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
                   <span className="font-medium capitalize text-slate-800">
                     {fmt(d.creneauDate)}
                   </span>
-                  <span className="text-sm text-slate-400">{d.lieuDepart}</span>
+                  <span className="text-sm text-slate-600">{d.lieuDepart}</span>
                   {d.pedaleurNom && (
                     <span className="text-sm text-green-700">🚲 {d.pedaleurNom}</span>
                   )}
@@ -220,7 +220,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
                 <button
                   onClick={() => supprimerDispo(d.id)}
                   disabled={occupe}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   Supprimer
                 </button>

@@ -24,7 +24,7 @@ export default function AidePage() {
         </h2>
         <ul className="space-y-2 text-slate-700">
           <li>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               Dispo (0/2)
             </span>{" "}
             — aucun bénéficiaire.

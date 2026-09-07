@@ -42,7 +42,7 @@ export default function AdminHome() {
             {c.emoji}
           </div>
           <h2 className="mt-3 text-lg font-bold text-marine-700">{c.titre}</h2>
-          <p className="mt-1 text-sm text-slate-500">{c.desc}</p>
+          <p className="mt-1 text-sm text-slate-600">{c.desc}</p>
         </Link>
       ))}
     </div>

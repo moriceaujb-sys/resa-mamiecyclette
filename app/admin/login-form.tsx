@@ -29,7 +29,7 @@ export default function LoginForm() {
     <div className="mx-auto max-w-sm">
       <div className="rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-marine-700">Espace équipe</h1>
-        <p className="mt-2 text-slate-500">
+        <p className="mt-2 text-slate-600">
           Réservé au CCAS et aux bénévoles.
         </p>
         <form action={soumettre} className="mt-6 space-y-4">
