@@ -4,6 +4,12 @@ export const dynamic = "force-dynamic";
 
 const CARTES = [
   {
+    href: "/admin/reservation",
+    emoji: "📝",
+    titre: "Réservation bénéficiaire",
+    desc: "Enregistrer les disponibilités d'un bénéficiaire (nom, créneaux…).",
+  },
+  {
     href: "/admin/creneaux",
     emoji: "🗓️",
     titre: "Créneaux",
@@ -25,7 +31,7 @@ const CARTES = [
 
 export default function AdminHome() {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {CARTES.map((c) => (
         <Link
           key={c.href}

@@ -81,7 +81,7 @@ export default function Dashboard({
           Balades à confirmer
         </h2>
         <p className="mb-4 text-sm text-slate-500">
-          Ces créneaux ont au moins un bénéficiaire. Vous pouvez en prendre un même s'il n'y a qu'une personne — un 2e passager pourra rejoindre ensuite.
+          Ces créneaux ont déjà 2 bénéficiaires prêts — il ne manque que vous.
         </p>
         {aConfirmer.length === 0 ? (
           <p className="rounded-xl bg-white p-6 text-slate-500 shadow-sm">

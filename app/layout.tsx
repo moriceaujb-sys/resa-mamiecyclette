@@ -26,20 +26,12 @@ export default function RootLayout({
                 Mamiecyclette
               </span>
             </Link>
-            <nav className="flex items-center gap-4">
-              <Link
-                href="/pedaleur"
-                className="text-sm text-slate-400 hover:text-marine-600"
-              >
-                Espace pédaleur
-              </Link>
-              <Link
-                href="/admin"
-                className="text-sm text-slate-400 hover:text-marine-600"
-              >
-                Espace équipe
-              </Link>
-            </nav>
+            <Link
+              href="/admin"
+              className="text-sm text-slate-400 hover:text-marine-600"
+            >
+              Espace équipe
+            </Link>
           </div>
         </header>
         <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>

@@ -104,7 +104,7 @@ export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
       lieuDepart: c.lieuDepart,
       nbBeneficiaires: c.disponibilites.length,
     }))
-    .filter((c) => c.nbBeneficiaires >= 1);
+    .filter((c) => c.nbBeneficiaires >= 2);
 }
 
 export type BaladePedaleur = {
@@ -148,6 +148,7 @@ export type CreneauAdmin = {
   aPedaleur: boolean;
   statut: StatutCreneau;
   beneficiaires: {
+    id: string;
     nom: string;
     telephone: string;
     email: string | null;
@@ -185,6 +186,7 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
       aPedaleur,
       statut: statutCreneau(nb, aPedaleur),
       beneficiaires: c.disponibilites.map((d) => ({
+        id: d.beneficiaire.id,
         nom: d.beneficiaire.nom,
         telephone: d.beneficiaire.telephone,
         email: d.beneficiaire.email,

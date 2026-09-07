@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { LIBELLE_STATUT, ratioStatut, type StatutCreneau } from "@/lib/statut";
 
 type CreneauAdmin = {
@@ -14,6 +15,7 @@ type CreneauAdmin = {
   aPedaleur: boolean;
   statut: StatutCreneau;
   beneficiaires: {
+    id: string;
     nom: string;
     telephone: string;
     email: string | null;
@@ -284,9 +286,15 @@ export default function CreneauxManager({
                       </p>
                     ) : (
                       <ul className="space-y-1">
-                        {c.beneficiaires.map((b, i) => (
-                          <li key={i} className="text-sm text-slate-600">
-                            🧓 <strong>{b.nom}</strong> · 📞 {b.telephone}
+                        {c.beneficiaires.map((b) => (
+                          <li key={b.id} className="text-sm text-slate-600">
+                            <Link
+                              href={`/admin/beneficiaires/${b.id}`}
+                              className="font-medium text-marine-600 hover:underline"
+                            >
+                              🧓 {b.nom}
+                            </Link>{" "}
+                            · 📞 {b.telephone}
                             {b.email ? ` · ✉️ ${b.email}` : ""}
                             {b.adresse ? ` · 📍 ${b.adresse}` : ""}
                             {b.besoinsParticuliers ? ` · 📝 ${b.besoinsParticuliers}` : ""}
