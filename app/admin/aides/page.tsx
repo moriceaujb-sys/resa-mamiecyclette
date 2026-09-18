@@ -124,6 +124,24 @@ export default function AidePage() {
 
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <h2 className="mb-2 text-lg font-bold text-marine-700">
+          Tableau de bord de pilotage
+        </h2>
+        <p className="text-slate-700">
+          La page <strong>Tableau de bord de pilotage</strong> donne les chiffres
+          du jour : pédaleurs inscrits et actifs, bénéficiaires enregistrés (dont
+          ceux qui ont déjà fait une balade ou en attendent une), structures, et
+          créneaux de balade. Une <strong>balade prise</strong> est un créneau qui
+          a un pédaleur bénévole ou qui est réservé par une structure. Les
+          balades sont comptées « réalisées » une fois la date passée ; les
+          passagers promenés sont les bénéficiaires confirmés (pour une
+          structure, le nombre estimé indiqué à la réservation). Le tableau
+          « Balades par mois » récapitule les balades prises, y compris celles à
+          venir.
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-marine-700">
           La règle de libération
         </h2>
         <p className="text-slate-700">

@@ -44,7 +44,7 @@ function offsetParis(ts: number): number {
 }
 
 // Instant UTC correspondant à une heure "murale" de Paris.
-function parisVersUtc(y: number, mo: number, d: number, h: number, mi: number): Date {
+export function parisVersUtc(y: number, mo: number, d: number, h: number, mi: number): Date {
   const guess = Date.UTC(y, mo, d, h, mi);
   const off = offsetParis(guess);
   return new Date(guess - off * 60000);

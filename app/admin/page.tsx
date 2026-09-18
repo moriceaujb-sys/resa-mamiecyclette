@@ -22,6 +22,12 @@ const CARTES = [
     desc: "Rechercher un bénéficiaire, consulter et modifier sa fiche.",
   },
   {
+    href: "/admin/pilotage",
+    emoji: "📊",
+    titre: "Tableau de bord de pilotage",
+    desc: "Nombre de pédaleurs, de bénéficiaires et de balades prises, mois par mois.",
+  },
+  {
     href: "/admin/aides",
     emoji: "📖",
     titre: "Aide & doc",
@@ -31,7 +37,7 @@ const CARTES = [
 
 export default function AdminHome() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
       {CARTES.map((c) => (
         <Link
           key={c.href}
