@@ -1,14 +1,22 @@
-// Statuts d'un créneau, calculés à partir du nombre de bénéficiaires et de la
-// présence d'un pédaleur. Capacité : 2 bénéficiaires + 1 pédaleur.
+// Statuts d'un créneau, calculés à partir du nombre de bénéficiaires, de la
+// présence d'un pédaleur et d'une éventuelle réservation par une structure.
+// Capacité : 2 bénéficiaires + 1 pédaleur.
 
 export type StatutCreneau =
   | "DISPO"
   | "CHERCHE_MOITIE"
   | "COMPLET_ATTENTE_PEDALEUR"
   | "PEDALEUR_CHERCHE_PASSAGER"
-  | "COMPLET_AVEC_PEDALEUR";
+  | "COMPLET_AVEC_PEDALEUR"
+  | "COMPLET_STRUCTURE";
 
-export function statutCreneau(nbBeneficiaires: number, aPedaleur: boolean): StatutCreneau {
+export function statutCreneau(
+  nbBeneficiaires: number,
+  aPedaleur: boolean,
+  structure = false
+): StatutCreneau {
+  // Une structure prend le créneau entier et vient avec son propre pédaleur.
+  if (structure) return "COMPLET_STRUCTURE";
   if (aPedaleur) {
     return nbBeneficiaires >= 2 ? "COMPLET_AVEC_PEDALEUR" : "PEDALEUR_CHERCHE_PASSAGER";
   }
@@ -23,10 +31,17 @@ export const LIBELLE_STATUT: Record<StatutCreneau, string> = {
   COMPLET_ATTENTE_PEDALEUR: "Complet, en attente d'un pédaleur",
   PEDALEUR_CHERCHE_PASSAGER: "Pédaleur trouvé, cherche un passager",
   COMPLET_AVEC_PEDALEUR: "Complet avec pédaleur",
+  COMPLET_STRUCTURE: "Complet pour une structure",
 };
 
 // Ratio affiché : x/2 tant qu'il n'y a ni pédaleur ni 2e bénéficiaire, puis x/3.
-export function ratioStatut(nbBeneficiaires: number, aPedaleur: boolean): string {
+// Pas de ratio pour une structure (créneau pris entièrement).
+export function ratioStatut(
+  nbBeneficiaires: number,
+  aPedaleur: boolean,
+  structure = false
+): string {
+  if (structure) return "";
   if (aPedaleur || nbBeneficiaires >= 2) {
     return `${nbBeneficiaires + (aPedaleur ? 1 : 0)}/3`;
   }

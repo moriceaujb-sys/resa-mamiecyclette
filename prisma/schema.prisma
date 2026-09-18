@@ -27,14 +27,23 @@ model Creneau {
   @@index([date])
 }
 
-// Un bénéficiaire (passager). Pas de compte : identifié par sa fiche.
+// Type de bénéficiaire : une personne (passager) ou une structure (EHPAD,
+// association…) qui réserve un créneau entier avec son propre pédaleur.
+enum TypeBeneficiaire {
+  PERSONNE
+  STRUCTURE
+}
+
+// Un bénéficiaire (passager ou structure). Pas de compte : identifié par sa fiche.
 model Beneficiaire {
-  id                  String          @id @default(cuid())
-  nom                 String
-  telephone           String
-  email               String?
-  adresse             String?
-  besoinsParticuliers String?         @db.Text
+  id                    String           @id @default(cuid())
+  type                  TypeBeneficiaire @default(PERSONNE)
+  nom                   String
+  telephone             String
+  email                 String?
+  adresse               String?
+  besoinsParticuliers   String?          @db.Text
+  nbBeneficiairesEstime Int?             // structures : nombre estimé de personnes promenées
   disponibilites      Disponibilite[]
   createdAt           DateTime        @default(now())
 }

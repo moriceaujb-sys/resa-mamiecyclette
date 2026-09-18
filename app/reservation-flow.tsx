@@ -28,11 +28,13 @@ export default function ReservationFlow({
   creneaux: CreneauBeneficiaire[];
 }) {
   const [selection, setSelection] = useState<Set<string>>(new Set());
+  const [mode, setMode] = useState<"PERSONNE" | "STRUCTURE">("PERSONNE");
   const [envoi, setEnvoi] = useState(false);
   const [resultat, setResultat] = useState<{
     retenus: number;
     ignores: number;
     confirmeDirect: boolean;
+    structure: boolean;
   } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [nbJours, setNbJours] = useState(PAS);
@@ -63,7 +65,25 @@ export default function ReservationFlow({
     return () => obs.disconnect();
   }, [parJour.length]);
 
+  // Une structure prend le créneau entier : seuls les créneaux sans bénéficiaire
+  // ni pédaleur lui sont proposés.
+  const libreEntier = useMemo(() => {
+    const m = new Map<string, boolean>();
+    for (const c of creneaux) m.set(c.id, c.nbBeneficiaires === 0 && !c.aPedaleur);
+    return m;
+  }, [creneaux]);
+
+  function changerMode(m: "PERSONNE" | "STRUCTURE") {
+    setMode(m);
+    setErreur(null);
+    if (m === "STRUCTURE") {
+      // On retire de la sélection les créneaux qu'une structure ne peut pas prendre.
+      setSelection((prev) => new Set(Array.from(prev).filter((id) => libreEntier.get(id))));
+    }
+  }
+
   function basculer(id: string) {
+    if (mode === "STRUCTURE" && !libreEntier.get(id)) return;
     setSelection((prev) => {
       const n = new Set(prev);
       if (n.has(id)) n.delete(id);
@@ -72,7 +92,10 @@ export default function ReservationFlow({
     });
   }
 
-  function basculerJour(ids: string[]) {
+  function basculerJour(idsJour: string[]) {
+    const ids =
+      mode === "STRUCTURE" ? idsJour.filter((id) => libreEntier.get(id)) : idsJour;
+    if (ids.length === 0) return;
     setSelection((prev) => {
       const n = new Set(prev);
       const tous = ids.every((id) => n.has(id));
@@ -94,12 +117,14 @@ export default function ReservationFlow({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          type: mode,
           creneauIds: Array.from(selection),
           nomClient: formData.get("nomClient"),
           telephone: formData.get("telephone"),
           email: formData.get("email"),
           adresse: formData.get("adresse"),
           besoinsParticuliers: formData.get("besoinsParticuliers"),
+          nbBeneficiairesEstime: formData.get("nbBeneficiairesEstime") || undefined,
         }),
       });
       const data = await res.json();
@@ -109,6 +134,7 @@ export default function ReservationFlow({
           retenus: data.retenus,
           ignores: data.ignores,
           confirmeDirect: !!data.confirmeDirect,
+          structure: !!data.structure,
         });
     } catch {
       setErreur("Impossible de contacter le serveur. Réessayez.");
@@ -121,9 +147,25 @@ export default function ReservationFlow({
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
         <div className="text-5xl" aria-hidden>
-          {resultat.confirmeDirect ? "✅" : "🎉"}
+          {resultat.structure ? "🏢" : resultat.confirmeDirect ? "✅" : "🎉"}
         </div>
-        {resultat.confirmeDirect ? (
+        {resultat.structure ? (
+          <>
+            <h2 className="mt-4 text-2xl font-bold text-marine-700">
+              Réservation enregistrée pour la structure !
+            </h2>
+            <p className="mt-2 text-lg text-slate-600">
+              {resultat.retenus} créneau{resultat.retenus > 1 ? "x" : ""} réservé
+              {resultat.retenus > 1 ? "s" : ""} entièrement.
+              {resultat.ignores > 0 &&
+                ` (${resultat.ignores} n'étaient plus disponibles.)`}
+            </p>
+            <p className="mt-2 text-slate-600">
+              La structure vient avec son propre pédaleur : ces créneaux ne sont
+              plus proposés aux bénéficiaires ni aux pédaleurs bénévoles.
+            </p>
+          </>
+        ) : resultat.confirmeDirect ? (
           <>
             <h2 className="mt-4 text-2xl font-bold text-marine-700">
               Votre balade est confirmée !
@@ -157,7 +199,7 @@ export default function ReservationFlow({
             setSelection(new Set());
           }}
         >
-          Envoyer d&apos;autres disponibilités
+          Enregistrer une autre réservation
         </button>
       </div>
     );
@@ -209,17 +251,23 @@ export default function ReservationFlow({
                     const sel = selection.has(c.id);
                     const pedaleurPret = c.aPedaleur;
                     const chercheMoitie = c.nbBeneficiaires === 1;
+                    const bloque = mode === "STRUCTURE" && !libreEntier.get(c.id);
                     let sousTitre = "Libre";
                     if (pedaleurPret) sousTitre = "🚲 Un pédaleur est prêt !";
                     else if (chercheMoitie) sousTitre = "Une personne attend !";
+                    if (bloque) sousTitre = "Déjà partiellement pris";
                     return (
                       <button
                         key={c.id}
                         type="button"
                         onClick={() => basculer(c.id)}
+                        disabled={bloque}
+                        title={bloque ? "Une structure ne peut prendre qu'un créneau entièrement libre." : undefined}
                         className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
                           sel
                             ? "border-marine-500 bg-marine-500 text-white"
+                            : bloque
+                            ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                             : pedaleurPret
                             ? "border-green-500 bg-green-50 hover:bg-green-100"
                             : "border-slate-300 bg-white hover:border-marine-500 hover:bg-marine-50"
@@ -242,6 +290,8 @@ export default function ReservationFlow({
                             className={`text-sm ${
                               sel
                                 ? "text-marine-50"
+                                : bloque
+                                ? "text-slate-400"
                                 : pedaleurPret
                                 ? "font-medium text-green-700"
                                 : chercheMoitie
@@ -274,12 +324,47 @@ export default function ReservationFlow({
       {/* Colonne formulaire */}
       <section className="lg:col-span-2">
         <h2 className="mb-4 text-xl font-bold text-marine-700">
-          2. Vos coordonnées
+          2. Coordonnées
         </h2>
         <form
           action={soumettre}
           className="space-y-4 rounded-2xl bg-white p-6 shadow-sm lg:sticky lg:top-4"
         >
+          {/* Switch personne / structure */}
+          <div
+            role="radiogroup"
+            aria-label="Type de réservation"
+            className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1"
+          >
+            {(
+              [
+                ["PERSONNE", "🧓 Un bénéficiaire"],
+                ["STRUCTURE", "🏢 Une structure"],
+              ] as const
+            ).map(([val, lib]) => (
+              <button
+                key={val}
+                type="button"
+                role="radio"
+                aria-checked={mode === val}
+                onClick={() => changerMode(val)}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  mode === val
+                    ? "bg-white text-marine-700 shadow-sm"
+                    : "text-slate-600 hover:text-marine-700"
+                }`}
+              >
+                {lib}
+              </button>
+            ))}
+          </div>
+          {mode === "STRUCTURE" && (
+            <p className="text-sm text-slate-600">
+              Une structure (EHPAD, association…) réserve le créneau{" "}
+              <strong>entier</strong> et vient avec son propre pédaleur.
+            </p>
+          )}
+
           <div className="rounded-lg bg-marine-50 px-4 py-3 text-sm text-marine-700">
             {selection.size === 0
               ? "Aucun créneau sélectionné pour l'instant."
@@ -290,9 +375,16 @@ export default function ReservationFlow({
 
           <div>
             <label className="label" htmlFor="nomClient">
-              Nom et prénom *
+              {mode === "STRUCTURE" ? "Nom de la structure *" : "Nom et prénom *"}
             </label>
-            <input id="nomClient" name="nomClient" required className="champ" autoComplete="name" />
+            <input
+              id="nomClient"
+              name="nomClient"
+              required
+              className="champ"
+              autoComplete={mode === "STRUCTURE" ? "organization" : "name"}
+              placeholder={mode === "STRUCTURE" ? "Ex. EHPAD Les Tilleuls" : undefined}
+            />
           </div>
 
           <div>
@@ -304,17 +396,50 @@ export default function ReservationFlow({
 
           <div>
             <label className="label" htmlFor="email">
-              Email (facultatif)
+              {mode === "STRUCTURE" ? "Email *" : "Email (facultatif)"}
             </label>
-            <input id="email" name="email" type="email" className="champ" autoComplete="email" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required={mode === "STRUCTURE"}
+              className="champ"
+              autoComplete="email"
+            />
           </div>
 
           <div>
             <label className="label" htmlFor="adresse">
-              Adresse de prise en charge (facultatif)
+              {mode === "STRUCTURE"
+                ? "Adresse postale *"
+                : "Adresse de prise en charge (facultatif)"}
             </label>
-            <input id="adresse" name="adresse" className="champ" />
+            <input
+              id="adresse"
+              name="adresse"
+              required={mode === "STRUCTURE"}
+              className="champ"
+              autoComplete={mode === "STRUCTURE" ? "street-address" : undefined}
+            />
           </div>
+
+          {mode === "STRUCTURE" && (
+            <div>
+              <label className="label" htmlFor="nbBeneficiairesEstime">
+                Nombre estimé de bénéficiaires promenés *
+              </label>
+              <input
+                id="nbBeneficiairesEstime"
+                name="nbBeneficiairesEstime"
+                type="number"
+                min={1}
+                max={500}
+                required
+                className="champ"
+                placeholder="Ex. 6"
+              />
+            </div>
+          )}
 
           <div>
             <label className="label" htmlFor="besoinsParticuliers">
@@ -338,7 +463,11 @@ export default function ReservationFlow({
             className="btn-soleil w-full"
             disabled={envoi || selection.size === 0}
           >
-            {envoi ? "Envoi en cours…" : "Envoyer mes disponibilités"}
+            {envoi
+              ? "Envoi en cours…"
+              : mode === "STRUCTURE"
+              ? "Réserver pour la structure"
+              : "Enregistrer les disponibilités"}
           </button>
         </form>
       </section>

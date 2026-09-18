@@ -13,9 +13,12 @@ type CreneauAdmin = {
   actif: boolean;
   nbBeneficiaires: number;
   aPedaleur: boolean;
+  structure: boolean;
   statut: StatutCreneau;
   beneficiaires: {
     id: string;
+    type: "PERSONNE" | "STRUCTURE";
+    nbBeneficiairesEstime: number | null;
     nom: string;
     telephone: string;
     email: string | null;
@@ -60,6 +63,7 @@ const badge: Record<StatutCreneau, string> = {
   COMPLET_ATTENTE_PEDALEUR: "bg-marine-100 text-marine-700",
   PEDALEUR_CHERCHE_PASSAGER: "bg-sky-100 text-sky-700",
   COMPLET_AVEC_PEDALEUR: "bg-green-100 text-green-700",
+  COMPLET_STRUCTURE: "bg-green-100 text-green-700",
 };
 
 export default function CreneauxManager({
@@ -199,7 +203,10 @@ export default function CreneauxManager({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge[c.statut]}`}
                   >
-                    {LIBELLE_STATUT[c.statut]} ({ratioStatut(c.nbBeneficiaires, c.aPedaleur)})
+                    {LIBELLE_STATUT[c.statut]}
+                    {c.structure
+                      ? ""
+                      : ` (${ratioStatut(c.nbBeneficiaires, c.aPedaleur)})`}
                   </span>
                   <span
                     className={`font-medium capitalize ${
@@ -278,7 +285,9 @@ export default function CreneauxManager({
                 <div className="mt-4 space-y-3 border-t border-slate-100 pt-3">
                   <div>
                     <h4 className="mb-1 text-sm font-semibold text-slate-600">
-                      Bénéficiaires ({c.nbBeneficiaires}/2)
+                      {c.structure
+                        ? "Structure (créneau entier)"
+                        : `Bénéficiaires (${c.nbBeneficiaires}/2)`}
                     </h4>
                     {c.beneficiaires.length === 0 ? (
                       <p className="text-sm text-slate-600">
@@ -292,8 +301,11 @@ export default function CreneauxManager({
                               href={`/admin/beneficiaires/${b.id}`}
                               className="font-medium text-marine-600 hover:underline"
                             >
-                              🧓 {b.nom}
+                              {b.type === "STRUCTURE" ? "🏢" : "🧓"} {b.nom}
                             </Link>{" "}
+                            {b.type === "STRUCTURE" && b.nbBeneficiairesEstime != null
+                              ? `· 👥 ~${b.nbBeneficiairesEstime} bénéficiaires `
+                              : ""}
                             · 📞 {b.telephone}
                             {b.email ? ` · ✉️ ${b.email}` : ""}
                             {b.adresse ? ` · 📍 ${b.adresse}` : ""}
@@ -308,6 +320,10 @@ export default function CreneauxManager({
                     {c.pedaleur ? (
                       <p className="text-sm text-slate-600">
                         🚲 <strong>{c.pedaleur.nom}</strong> · ✉️ {c.pedaleur.email}
+                      </p>
+                    ) : c.structure ? (
+                      <p className="text-sm text-slate-600">
+                        La structure vient avec son propre pédaleur.
                       </p>
                     ) : (
                       <p className="text-sm text-slate-600">Pas encore de pédaleur.</p>

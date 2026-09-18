@@ -31,6 +31,7 @@ const BADGE_DISPO: Record<string, string> = {
 
 export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) {
   const router = useRouter();
+  const structure = b.type === "STRUCTURE";
   const [occupe, setOccupe] = useState(false);
   const [edition, setEdition] = useState(false);
 
@@ -61,6 +62,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
       email: formData.get("email"),
       adresse: formData.get("adresse"),
       besoinsParticuliers: formData.get("besoinsParticuliers"),
+      nbBeneficiairesEstime: structure ? formData.get("nbBeneficiairesEstime") : undefined,
     });
     if (ok) {
       setEdition(false);
@@ -107,8 +109,16 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-marine-700">{b.nom}</h1>
+            <h1 className="text-2xl font-bold text-marine-700">
+              {structure ? "🏢 " : ""}
+              {b.nom}
+            </h1>
             <p className="text-sm text-slate-600">
+              {structure ? (
+                <span className="mr-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                  Structure
+                </span>
+              ) : null}
               Fiche créée le {fmt(b.createdAt)}
             </p>
           </div>
@@ -136,7 +146,7 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
         {edition ? (
           <form action={modifier} className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="label">Nom et prénom *</label>
+              <label className="label">{structure ? "Nom de la structure *" : "Nom et prénom *"}</label>
               <input name="nom" required defaultValue={b.nom} className="champ" />
             </div>
             <div>
@@ -144,13 +154,27 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
               <input name="telephone" required defaultValue={b.telephone} className="champ" />
             </div>
             <div>
-              <label className="label">Email</label>
-              <input name="email" type="email" defaultValue={b.email || ""} className="champ" />
+              <label className="label">{structure ? "Email *" : "Email"}</label>
+              <input name="email" type="email" required={structure} defaultValue={b.email || ""} className="champ" />
             </div>
             <div>
-              <label className="label">Adresse</label>
-              <input name="adresse" defaultValue={b.adresse || ""} className="champ" />
+              <label className="label">{structure ? "Adresse postale *" : "Adresse"}</label>
+              <input name="adresse" required={structure} defaultValue={b.adresse || ""} className="champ" />
             </div>
+            {structure && (
+              <div>
+                <label className="label">Nombre estimé de bénéficiaires promenés *</label>
+                <input
+                  name="nbBeneficiairesEstime"
+                  type="number"
+                  min={1}
+                  max={500}
+                  required
+                  defaultValue={b.nbBeneficiairesEstime ?? ""}
+                  className="champ"
+                />
+              </div>
+            )}
             <div className="sm:col-span-2">
               <label className="label">Besoins particuliers</label>
               <textarea
@@ -184,13 +208,19 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
               <dt className="text-slate-600">Besoins particuliers</dt>
               <dd className="text-slate-800">{b.besoinsParticuliers || "—"}</dd>
             </div>
+            {structure && (
+              <div>
+                <dt className="text-slate-600">Nombre estimé de bénéficiaires promenés</dt>
+                <dd className="text-slate-800">{b.nbBeneficiairesEstime ?? "—"}</dd>
+              </div>
+            )}
           </dl>
         )}
       </div>
 
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <h2 className="mb-3 text-lg font-bold text-marine-700">
-          Créneaux de ce bénéficiaire ({b.disponibilites.length})
+          Créneaux {structure ? "réservés par cette structure" : "de ce bénéficiaire"} ({b.disponibilites.length})
         </h2>
         {b.disponibilites.length === 0 ? (
           <p className="text-sm text-slate-600">Aucun créneau.</p>
@@ -207,7 +237,9 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
                       BADGE_DISPO[d.statut] || "bg-slate-100 text-slate-600"
                     }`}
                   >
-                    {LIBELLE_DISPO[d.statut] || d.statut}
+                    {structure && d.statut === "CONFIRMEE"
+                      ? "Réservé (créneau entier)"
+                      : LIBELLE_DISPO[d.statut] || d.statut}
                   </span>
                   <span className="font-medium capitalize text-slate-800">
                     {fmt(d.creneauDate)}

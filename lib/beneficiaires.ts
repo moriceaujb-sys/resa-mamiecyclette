@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
+export type TypeBeneficiaire = "PERSONNE" | "STRUCTURE";
+
 export type BeneficiaireListe = {
   id: string;
+  type: TypeBeneficiaire;
+  nbBeneficiairesEstime: number | null;
   nom: string;
   telephone: string;
   email: string | null;
@@ -18,6 +22,8 @@ export async function beneficiairesListe(): Promise<BeneficiaireListe[]> {
   });
   return bens.map((b) => ({
     id: b.id,
+    type: b.type,
+    nbBeneficiairesEstime: b.nbBeneficiairesEstime,
     nom: b.nom,
     telephone: b.telephone,
     email: b.email,
@@ -40,6 +46,8 @@ export type DispoDetail = {
 
 export type BeneficiaireDetail = {
   id: string;
+  type: TypeBeneficiaire;
+  nbBeneficiairesEstime: number | null;
   nom: string;
   telephone: string;
   email: string | null;
@@ -64,6 +72,8 @@ export async function beneficiaireDetail(
   if (!b) return null;
   return {
     id: b.id,
+    type: b.type,
+    nbBeneficiairesEstime: b.nbBeneficiairesEstime,
     nom: b.nom,
     telephone: b.telephone,
     email: b.email,

@@ -16,7 +16,14 @@ export default function BeneficiairesTable({
     const t = q.trim().toLowerCase();
     if (!t) return beneficiaires;
     return beneficiaires.filter((b) =>
-      [b.nom, b.telephone, b.email, b.adresse, b.besoinsParticuliers]
+      [
+        b.nom,
+        b.telephone,
+        b.email,
+        b.adresse,
+        b.besoinsParticuliers,
+        b.type === "STRUCTURE" ? "structure" : "bénéficiaire",
+      ]
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(t))
     );
@@ -44,7 +51,8 @@ export default function BeneficiairesTable({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-100 text-xs uppercase text-slate-600">
             <tr>
-              <th className="px-4 py-3">Nom et prénom</th>
+              <th className="px-4 py-3">Nom</th>
+              <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Téléphone</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Adresse</th>
@@ -55,7 +63,7 @@ export default function BeneficiairesTable({
           <tbody>
             {filtres.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-600">
+                <td colSpan={7} className="px-4 py-6 text-center text-slate-600">
                   Aucun bénéficiaire trouvé.
                 </td>
               </tr>
@@ -66,7 +74,20 @@ export default function BeneficiairesTable({
                 onClick={() => router.push(`/admin/beneficiaires/${b.id}`)}
                 className="cursor-pointer border-b border-slate-50 last:border-0 hover:bg-marine-50"
               >
-                <td className="px-4 py-3 font-medium text-slate-800">{b.nom}</td>
+                <td className="px-4 py-3 font-medium text-slate-800">
+                  {b.type === "STRUCTURE" ? "🏢 " : ""}
+                  {b.nom}
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  {b.type === "STRUCTURE" ? (
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      Structure
+                      {b.nbBeneficiairesEstime != null ? ` · ~${b.nbBeneficiairesEstime} pers.` : ""}
+                    </span>
+                  ) : (
+                    "Bénéficiaire"
+                  )}
+                </td>
                 <td className="px-4 py-3 text-slate-600">{b.telephone}</td>
                 <td className="px-4 py-3 text-slate-600">{b.email || "—"}</td>
                 <td className="px-4 py-3 text-slate-600">{b.adresse || "—"}</td>

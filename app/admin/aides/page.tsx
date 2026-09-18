@@ -11,10 +11,12 @@ export default function AidePage() {
         </h2>
         <p className="text-slate-700">
           Chaque créneau réunit <strong>2 bénéficiaires</strong> (passagers) et{" "}
-          <strong>1 pédaleur</strong> (bénévole). Les bénéficiaires déclarent
-          leurs disponibilités depuis la page d&apos;accueil (sans compte, un ou
+          <strong>1 pédaleur</strong> (bénévole). L&apos;équipe enregistre les
+          disponibilités des bénéficiaires depuis la page Réservation (un ou
           plusieurs créneaux). Les pédaleurs, connectés à leur compte, prennent
-          en charge les créneaux.
+          en charge les créneaux. Une <strong>structure</strong> (EHPAD,
+          association…) peut aussi réserver un créneau entier avec son propre
+          pédaleur (voir plus bas).
         </p>
       </div>
 
@@ -54,7 +56,38 @@ export default function AidePage() {
             </span>{" "}
             — 2 bénéficiaires + 1 pédaleur, la balade est bouclée.
           </li>
+          <li>
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+              Complet pour une structure
+            </span>{" "}
+            — le créneau entier est réservé par une structure (EHPAD,
+            association…) qui vient avec son propre pédaleur. Il n&apos;est plus
+            proposé ni aux bénéficiaires ni aux pédaleurs bénévoles.
+          </li>
         </ul>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-marine-700">
+          Réserver pour une structure
+        </h2>
+        <p className="text-slate-700">
+          Dans la page <strong>Réservation</strong>, un sélecteur permet de
+          choisir entre <strong>un bénéficiaire</strong> et{" "}
+          <strong>une structure</strong>. Pour une structure, on renseigne le
+          nom de la structure, le téléphone, l&apos;email, l&apos;adresse postale
+          et le <strong>nombre estimé de bénéficiaires promenés</strong> (tous
+          obligatoires), ainsi que d&apos;éventuels besoins particuliers.
+        </p>
+        <p className="mt-2 text-slate-700">
+          Une structure prend le créneau <strong>entier</strong> : seuls les
+          créneaux encore totalement libres (aucun bénéficiaire, aucun pédaleur)
+          lui sont proposés. Chaque créneau sélectionné est réservé{" "}
+          <strong>fermement</strong> (pas de règle de libération : une structure
+          peut réserver plusieurs sorties). La structure apparaît dans la liste
+          des <strong>Bénéficiaires</strong> avec la mention « Structure », et sa
+          fiche permet de modifier ses informations ou de retirer un créneau.
+        </p>
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm">

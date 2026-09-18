@@ -15,6 +15,7 @@ const majSchema = z.object({
   email: z.string().trim().email().max(180).optional().or(z.literal("")),
   adresse: z.string().trim().max(240).optional().or(z.literal("")),
   besoinsParticuliers: z.string().trim().max(1000).optional().or(z.literal("")),
+  nbBeneficiairesEstime: z.coerce.number().int().min(1).max(500).optional().or(z.literal("")),
 });
 
 export async function PATCH(request: Request) {
@@ -35,6 +36,8 @@ export async function PATCH(request: Request) {
       email: d.email || null,
       adresse: d.adresse || null,
       besoinsParticuliers: d.besoinsParticuliers || null,
+      nbBeneficiairesEstime:
+        typeof d.nbBeneficiairesEstime === "number" ? d.nbBeneficiairesEstime : null,
     },
   });
   return NextResponse.json({ ok: true });

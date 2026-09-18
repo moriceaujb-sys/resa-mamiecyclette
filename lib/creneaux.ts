@@ -53,18 +53,24 @@ export type CreneauBeneficiaire = {
   aPedaleur: boolean;
 };
 
-// Créneaux réservables par un bénéficiaire : actifs, futurs, moins de 2 bénéficiaires.
-// (Y compris ceux qui ont déjà un pédaleur mais où il reste une place — Option A.)
+// Créneaux réservables par un bénéficiaire : actifs, futurs, moins de 2 bénéficiaires,
+// non réservés par une structure. (Y compris ceux qui ont déjà un pédaleur mais où il
+// reste une place — Option A.) Une structure, elle, ne peut prendre qu'un créneau
+// entièrement libre (0 bénéficiaire, pas de pédaleur) : filtrage côté formulaire.
 export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]> {
   const now = new Date();
   const creneaux = await prisma.creneau.findMany({
     where: { actif: true, date: { gte: now } },
     orderBy: { date: "asc" },
     include: {
-      disponibilites: { where: { statut: { in: [...ACTIVES] } }, select: { id: true } },
+      disponibilites: {
+        where: { statut: { in: [...ACTIVES] } },
+        select: { id: true, beneficiaire: { select: { type: true } } },
+      },
     },
   });
   return creneaux
+    .filter((c) => !c.disponibilites.some((d) => d.beneficiaire.type === "STRUCTURE"))
     .map((c) => ({
       id: c.id,
       date: c.date.toISOString(),
@@ -146,9 +152,12 @@ export type CreneauAdmin = {
   actif: boolean;
   nbBeneficiaires: number;
   aPedaleur: boolean;
+  structure: boolean; // réservé entièrement par une structure
   statut: StatutCreneau;
   beneficiaires: {
     id: string;
+    type: "PERSONNE" | "STRUCTURE";
+    nbBeneficiairesEstime: number | null;
     nom: string;
     telephone: string;
     email: string | null;
@@ -176,6 +185,7 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
   return creneaux.map((c) => {
     const nb = c.disponibilites.length;
     const aPedaleur = c.pedaleurId != null;
+    const structure = c.disponibilites.some((d) => d.beneficiaire.type === "STRUCTURE");
     return {
       id: c.id,
       date: c.date.toISOString(),
@@ -184,9 +194,12 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
       actif: c.actif,
       nbBeneficiaires: nb,
       aPedaleur,
-      statut: statutCreneau(nb, aPedaleur),
+      structure,
+      statut: statutCreneau(nb, aPedaleur, structure),
       beneficiaires: c.disponibilites.map((d) => ({
         id: d.beneficiaire.id,
+        type: d.beneficiaire.type,
+        nbBeneficiairesEstime: d.beneficiaire.nbBeneficiairesEstime,
         nom: d.beneficiaire.nom,
         telephone: d.beneficiaire.telephone,
         email: d.beneficiaire.email,
