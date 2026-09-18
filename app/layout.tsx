@@ -66,14 +66,21 @@ export default function RootLayout({
           </div>
         </header>
         <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
-        <footer className="mt-12 border-t border-marine-100 py-8">
+        <footer className="mt-12 border-t border-marine-100 bg-white py-8">
           <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 px-4 text-center text-sm text-slate-600">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/mamie-cyclette-logo.png"
-              alt="Mamie Cyclette"
-              className="h-14 w-auto"
-            />
+            <a
+              href="https://mamiecyclette.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Site de Mamie Cyclette"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/mamie-cyclette-logo.png"
+                alt="Mamie Cyclette"
+                className="h-14 w-auto"
+              />
+            </a>
             <div>Mamie Cyclette · Balades en triporteur du CCAS</div>
             <div className="flex flex-col items-center gap-2">
               <span>En partenariat avec la Ville d&apos;Angers</span>
