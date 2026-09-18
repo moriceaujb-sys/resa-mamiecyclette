@@ -328,7 +328,7 @@ export default function ReservationFlow({
         </h2>
         <form
           action={soumettre}
-          className="space-y-4 rounded-2xl bg-white p-6 shadow-sm lg:sticky lg:top-4"
+          className="space-y-4 rounded-2xl bg-white p-6 shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
         >
           {/* Switch personne / structure */}
           <div

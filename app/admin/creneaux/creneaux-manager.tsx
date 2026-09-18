@@ -215,7 +215,14 @@ export default function CreneauxManager({
                   >
                     {fmt(c.date)}
                   </span>
-                  <span className="text-sm text-slate-600">{c.lieuDepart}</span>
+                  <span className="text-sm text-slate-600">
+                    {c.structure
+                      ? (() => {
+                          const st = c.beneficiaires.find((b) => b.type === "STRUCTURE");
+                          return st ? `🏢 ${st.nom}${st.adresse ? ` · ${st.adresse}` : ""}` : "";
+                        })()
+                      : c.lieuDepart}
+                  </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button

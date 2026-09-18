@@ -27,7 +27,7 @@ const schemaStructure = z.object({
   type: z.literal("STRUCTURE"),
   nomClient: z.string().trim().min(2, "Nom de la structure trop court").max(120),
   email: z.string().trim().min(1, "L'email est obligatoire.").email("Email invalide").max(180),
-  adresse: z.string().trim().min(5, "L'adresse postale est obligatoire.").max(240),
+  adresse: z.string().trim().min(3, "L'adresse postale est obligatoire.").max(240),
   nbBeneficiairesEstime: z.coerce
     .number({ invalid_type_error: "Indiquez le nombre estimé de bénéficiaires." })
     .int("Nombre entier attendu.")
