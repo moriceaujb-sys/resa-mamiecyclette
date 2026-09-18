@@ -8,6 +8,9 @@
 
 body {
   @apply bg-creme font-sans text-slate-800 antialiased;
+  /* La page d'accueil a un bandeau pleine largeur (w-screen) : on évite
+     tout défilement horizontal dû à la barre de défilement verticale. */
+  overflow-x: clip;
 }
 
 /* Champs de formulaire — grands et lisibles (public souvent âgé). */

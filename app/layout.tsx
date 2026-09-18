@@ -54,12 +54,14 @@ export default function RootLayout({
                   className="h-10 w-auto"
                 />
               </a>
-              <Link
-                href="/admin"
-                className="text-sm font-medium text-marine-600 hover:text-marine-700"
-              >
-                Espace équipe
-              </Link>
+              <nav className="flex items-center gap-3 text-sm font-medium sm:gap-5">
+                <Link href="/pedaleur" className="text-marine-600 hover:text-marine-700">
+                  Espace pédaleur
+                </Link>
+                <Link href="/admin" className="text-marine-600 hover:text-marine-700">
+                  Espace équipe
+                </Link>
+              </nav>
             </div>
           </div>
         </header>

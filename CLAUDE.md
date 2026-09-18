@@ -5,10 +5,14 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 
 ## Stack et structure
 - Next.js 14 (App Router, TypeScript), Prisma + PostgreSQL, Tailwind CSS.
+- `app/page.tsx` : page d'accueil publique (`app/accueil.tsx` — présentation, vidéo Vimeo,
+  appel aux pédaleurs volontaires) ; un pédaleur connecté y voit directement son tableau de bord.
+  Photo d'accroche attendue dans `public/balade-triporteur.jpg` (repli sur le logo si absente).
 - `app/admin/*` : espace équipe (mot de passe `ADMIN_PASSWORD`) — réservation, créneaux,
   bénéficiaires, aide & doc (`app/admin/aides/page.tsx` = documentation utilisateur, à tenir à jour
   à chaque changement de règle métier).
-- `app/pedaleur/*` : espace pédaleur (compte, inscription libre).
+- `app/pedaleur/*` : espace pédaleur (connexion / inscription libre, `?mode=inscription`
+  ouvre l'onglet création de compte ; tableau de bord).
 - `app/api/*` : routes (zod pour la validation).
 - `lib/statut.ts` (statuts d'un créneau), `lib/creneaux.ts` (génération + requêtes),
   `lib/horaires.ts` (règle récurrente), `lib/beneficiaires.ts`.

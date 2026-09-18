@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function AuthForms() {
+type Mode = "connexion" | "inscription";
+
+export default function AuthForms({
+  modeInitial = "connexion",
+}: {
+  modeInitial?: Mode;
+}) {
   const router = useRouter();
-  const [mode, setMode] = useState<"connexion" | "inscription">("connexion");
+  const [mode, setMode] = useState<Mode>(modeInitial);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
 
@@ -33,6 +40,8 @@ export default function AuthForms() {
       body: JSON.stringify(body),
     });
     if (res.ok) {
+      // Le tableau de bord est rendu sur la page d'accueil pour un pédaleur connecté.
+      router.push("/");
       router.refresh();
     } else {
       const d = await res.json().catch(() => ({}));
@@ -107,6 +116,11 @@ export default function AuthForms() {
           </button>
         </form>
       </div>
+      <p className="mt-4 text-center text-sm text-slate-600">
+        <Link href="/" className="underline hover:text-marine-700">
+          Découvrir Mamie Cyclette et les balades
+        </Link>
+      </p>
     </div>
   );
 }
