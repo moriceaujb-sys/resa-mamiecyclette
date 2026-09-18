@@ -100,7 +100,7 @@ export default function AidePage() {
         </h2>
         <p className="text-slate-700">
           Les créneaux se génèrent <strong>automatiquement</strong> (lundi,
-          mercredi, vendredi à 10h, 11h, 15h et 16h, sur les mois à venir). Dans
+          mercredi, vendredi à 10h, 11h15, 15h et 16h, sur les mois à venir). Dans
           la page <strong>Créneaux</strong>, vous pouvez en plus{" "}
           <strong>ajouter</strong> un créneau exceptionnel, <strong>modifier</strong>{" "}
           (date, heure, durée, lieu), <strong>désactiver</strong> ou{" "}
