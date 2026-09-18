@@ -41,7 +41,10 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
   Le `start` Railway fait `prisma db push --accept-data-loss --skip-generate` : le schéma est
   synchronisé au déploiement, pas de migrations.
 - SQL ponctuel sur la base de prod : `echo '<SQL>' | npx prisma db execute --schema prisma/schema.prisma --stdin`
-  (DATABASE_URL dans `.env`, non versionné).
+  (DATABASE_URL dans `.env`, non versionné). **Piège** : `Creneau.date` est un `timestamp`
+  sans fuseau stocké en UTC ; pour comparer une heure de Paris, écrire
+  `(date AT TIME ZONE 'UTC') AT TIME ZONE 'Europe/Paris'` (un simple `AT TIME ZONE 'Europe/Paris'`
+  convertit à l'envers et vise les mauvais créneaux).
 - Reset des données de test (garde les pédaleurs) :
   `TRUNCATE "Disponibilite","Beneficiaire","Creneau","Configuration" RESTART IDENTITY CASCADE;`
 
