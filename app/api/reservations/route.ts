@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { peutRejoindreAvecPedaleur } from "@/lib/creneaux";
 
 // Un bénéficiaire (personne) déclare ses disponibilités sur un ou plusieurs
 // créneaux, ou une structure (EHPAD, association…) réserve fermement un ou
@@ -133,7 +134,12 @@ export async function POST(request: Request) {
           continue;
         }
         if (creneau.pedaleurId) {
-          // Un pédaleur est déjà prêt sur ce créneau → balade confirmée immédiatement.
+          // Un pédaleur est déjà prêt : on rejoint la balade prévue, sauf à moins de
+          // 48 h (pas d'ajout de dernière minute pour le pédaleur).
+          if (!peutRejoindreAvecPedaleur(creneau.date, now)) {
+            ignores++;
+            continue;
+          }
           await tx.disponibilite.create({
             data: { creneauId, beneficiaireId: beneficiaire.id, statut: "CONFIRMEE" },
           });

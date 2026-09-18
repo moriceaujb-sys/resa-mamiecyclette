@@ -35,7 +35,8 @@ export default function AidePage() {
             <span className="rounded-full bg-soleil-400/25 px-2 py-0.5 text-xs font-medium text-marine-700">
               Cherche sa moitié (1/2)
             </span>{" "}
-            — 1 bénéficiaire, on attend le second.
+            — 1 bénéficiaire ; visible par les pédaleurs, qui peuvent déjà
+            prendre le créneau.
           </li>
           <li>
             <span className="rounded-full bg-marine-100 px-2 py-0.5 text-xs font-medium text-marine-700">
@@ -48,7 +49,10 @@ export default function AidePage() {
               Pédaleur trouvé, cherche un passager (2/3)
             </span>{" "}
             — un pédaleur s&apos;est positionné sur un créneau qui n&apos;avait
-            qu&apos;un bénéficiaire ; un 2e passager peut encore rejoindre.
+            qu&apos;un bénéficiaire ; un 2e passager peut encore rejoindre la
+            balade, <strong>jusqu&apos;à 48 h avant</strong> le départ (au-delà, le
+            créneau n&apos;est plus proposé : pas d&apos;ajout de dernière minute
+            pour le pédaleur).
           </li>
           <li>
             <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -102,6 +106,19 @@ export default function AidePage() {
           (date, heure, durée, lieu), <strong>désactiver</strong> ou{" "}
           <strong>supprimer</strong>. Vos modifications ne sont jamais réécrasées
           par la génération automatique.
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-marine-700">
+          Règles pour les pédaleurs
+        </h2>
+        <p className="text-slate-700">
+          Un pédaleur peut prendre un créneau dès qu&apos;il y a{" "}
+          <strong>1 bénéficiaire</strong> en attente. Un second bénéficiaire peut
+          ensuite se rajouter à la balade prévue, mais seulement si elle a lieu
+          dans <strong>plus de 48 heures</strong> ; à moins de 48 h, le créneau
+          n&apos;est plus proposé à la réservation.
         </p>
       </div>
 

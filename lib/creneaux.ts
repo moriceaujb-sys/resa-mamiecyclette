@@ -5,6 +5,14 @@ import { statutCreneau, StatutCreneau } from "@/lib/statut";
 // Disponibilités qui "occupent" une place de bénéficiaire.
 const ACTIVES = ["EN_ATTENTE", "CONFIRMEE"] as const;
 
+// Délai (heures) avant la balade en deçà duquel un bénéficiaire ne peut plus
+// rejoindre un créneau déjà pris par un pédaleur (pas d'ajout de dernière minute).
+export const DELAI_REJOINDRE_HEURES = 48;
+
+export function peutRejoindreAvecPedaleur(date: Date, now = new Date()): boolean {
+  return date.getTime() - now.getTime() >= DELAI_REJOINDRE_HEURES * 3600 * 1000;
+}
+
 // Crée en base les créneaux récurrents manquants jusqu'à l'horizon (idempotent).
 export async function ensureCreneaux(): Promise<void> {
   const now = new Date();
@@ -54,8 +62,9 @@ export type CreneauBeneficiaire = {
 };
 
 // Créneaux réservables par un bénéficiaire : actifs, futurs, moins de 2 bénéficiaires,
-// non réservés par une structure. (Y compris ceux qui ont déjà un pédaleur mais où il
-// reste une place — Option A.) Une structure, elle, ne peut prendre qu'un créneau
+// non réservés par une structure. Y compris ceux qui ont déjà un pédaleur et 1 seul
+// bénéficiaire (Option A : on se rajoute à la balade prévue), mais seulement si la
+// balade est à plus de 48 h. Une structure, elle, ne peut prendre qu'un créneau
 // entièrement libre (0 bénéficiaire, pas de pédaleur) : filtrage côté formulaire.
 export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]> {
   const now = new Date();
@@ -80,7 +89,8 @@ export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]
       placesRestantes: Math.max(0, 2 - c.disponibilites.length),
       aPedaleur: c.pedaleurId != null,
     }))
-    .filter((c) => c.nbBeneficiaires < 2);
+    .filter((c) => c.nbBeneficiaires < 2)
+    .filter((c) => !c.aPedaleur || peutRejoindreAvecPedaleur(new Date(c.date), now));
 }
 
 // ---------- Côté pédaleur ----------
@@ -93,6 +103,7 @@ export type CreneauPedaleur = {
 };
 
 // Créneaux qu'un pédaleur peut prendre : au moins 1 bénéficiaire en attente, sans pédaleur.
+// (Un 2e bénéficiaire pourra encore rejoindre la balade jusqu'à 48 h avant.)
 export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
   const now = new Date();
   const creneaux = await prisma.creneau.findMany({
@@ -110,7 +121,7 @@ export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
       lieuDepart: c.lieuDepart,
       nbBeneficiaires: c.disponibilites.length,
     }))
-    .filter((c) => c.nbBeneficiaires >= 2);
+    .filter((c) => c.nbBeneficiaires >= 1);
 }
 
 export type BaladePedaleur = {

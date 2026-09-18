@@ -81,13 +81,13 @@ export default function Dashboard({
           Balades à confirmer
         </h2>
         <p className="mb-4 text-sm text-slate-600">
-          Ces créneaux ont déjà 2 bénéficiaires prêts — il ne manque que vous.
+          Ces créneaux ont au moins 1 bénéficiaire prêt — il ne manque que vous.
+          Un 2e passager peut encore rejoindre la balade jusqu&apos;à 48 h avant.
         </p>
         {aConfirmer.length === 0 ? (
           <p className="rounded-xl bg-white p-6 text-slate-600 shadow-sm">
             Aucun créneau à confirmer pour l&apos;instant. Revenez plus tard : dès
-            que 2 bénéficiaires se positionnent sur un même créneau, il apparaît
-            ici.
+            qu&apos;un bénéficiaire se positionne sur un créneau, il apparaît ici.
           </p>
         ) : (
           <div className="space-y-3">
