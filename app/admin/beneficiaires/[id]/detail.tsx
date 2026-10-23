@@ -118,6 +118,10 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
                 <span className="mr-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                   Structure
                 </span>
+              ) : b.couple ? (
+                <span className="mr-2 rounded-full bg-marine-100 px-2 py-0.5 text-xs font-medium text-marine-700">
+                  👫 Couple (2 places)
+                </span>
               ) : null}
               Fiche créée le {fmt(b.createdAt)}
             </p>

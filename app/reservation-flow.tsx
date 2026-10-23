@@ -29,6 +29,7 @@ export default function ReservationFlow({
 }) {
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"PERSONNE" | "STRUCTURE">("PERSONNE");
+  const [couple, setCouple] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [resultat, setResultat] = useState<{
     retenus: number;
@@ -73,17 +74,37 @@ export default function ReservationFlow({
     return m;
   }, [creneaux]);
 
+  // Un couple occupe les 2 places : seuls les créneaux encore vides lui conviennent.
+  const deuxPlaces = useMemo(() => {
+    const m = new Map<string, boolean>();
+    for (const c of creneaux) m.set(c.id, c.placesRestantes >= 2);
+    return m;
+  }, [creneaux]);
+
+  function estBloque(id: string, m = mode, estCouple = couple): boolean {
+    if (m === "STRUCTURE") return !libreEntier.get(id);
+    if (estCouple) return !deuxPlaces.get(id);
+    return false;
+  }
+
+  // On retire de la sélection les créneaux qui ne conviennent plus.
+  function filtrerSelection(m: "PERSONNE" | "STRUCTURE", estCouple: boolean) {
+    setSelection((prev) => new Set(Array.from(prev).filter((id) => !estBloque(id, m, estCouple))));
+  }
+
   function changerMode(m: "PERSONNE" | "STRUCTURE") {
     setMode(m);
     setErreur(null);
-    if (m === "STRUCTURE") {
-      // On retire de la sélection les créneaux qu'une structure ne peut pas prendre.
-      setSelection((prev) => new Set(Array.from(prev).filter((id) => libreEntier.get(id))));
-    }
+    filtrerSelection(m, couple);
+  }
+
+  function changerCouple(v: boolean) {
+    setCouple(v);
+    filtrerSelection(mode, v);
   }
 
   function basculer(id: string) {
-    if (mode === "STRUCTURE" && !libreEntier.get(id)) return;
+    if (estBloque(id)) return;
     setSelection((prev) => {
       const n = new Set(prev);
       if (n.has(id)) n.delete(id);
@@ -93,8 +114,7 @@ export default function ReservationFlow({
   }
 
   function basculerJour(idsJour: string[]) {
-    const ids =
-      mode === "STRUCTURE" ? idsJour.filter((id) => libreEntier.get(id)) : idsJour;
+    const ids = idsJour.filter((id) => !estBloque(id));
     if (ids.length === 0) return;
     setSelection((prev) => {
       const n = new Set(prev);
@@ -124,6 +144,7 @@ export default function ReservationFlow({
           email: formData.get("email"),
           adresse: formData.get("adresse"),
           besoinsParticuliers: formData.get("besoinsParticuliers"),
+          couple: mode === "PERSONNE" && couple,
           nbBeneficiairesEstime: formData.get("nbBeneficiairesEstime") || undefined,
         }),
       });
@@ -251,7 +272,7 @@ export default function ReservationFlow({
                     const sel = selection.has(c.id);
                     const pedaleurPret = c.aPedaleur;
                     const chercheMoitie = c.nbBeneficiaires === 1;
-                    const bloque = mode === "STRUCTURE" && !libreEntier.get(c.id);
+                    const bloque = estBloque(c.id);
                     let sousTitre = "Libre";
                     if (pedaleurPret) sousTitre = "🚲 Un pédaleur est prêt !";
                     else if (chercheMoitie) sousTitre = "Une personne attend !";
@@ -262,7 +283,13 @@ export default function ReservationFlow({
                         type="button"
                         onClick={() => basculer(c.id)}
                         disabled={bloque}
-                        title={bloque ? "Une structure ne peut prendre qu'un créneau entièrement libre." : undefined}
+                        title={
+                          bloque
+                            ? mode === "STRUCTURE"
+                              ? "Une structure ne peut prendre qu'un créneau entièrement libre."
+                              : "Un couple a besoin des 2 places : seuls les créneaux libres conviennent."
+                            : undefined
+                        }
                         className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
                           sel
                             ? "border-marine-500 bg-marine-500 text-white"
@@ -364,6 +391,25 @@ export default function ReservationFlow({
               <strong>entier</strong> et vient avec son propre pédaleur.
             </p>
           )}
+          {mode === "PERSONNE" && (
+            <label className="flex items-start gap-3 rounded-lg border border-slate-200 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={couple}
+                onChange={(e) => changerCouple(e.target.checked)}
+                className="mt-1 h-5 w-5"
+              />
+              <span>
+                <span className="block font-medium text-slate-800">
+                  👫 C&apos;est un couple (2 passagers)
+                </span>
+                <span className="text-sm text-slate-600">
+                  Le couple occupe les 2 places : le créneau est complet, seuls les
+                  créneaux encore libres sont proposés.
+                </span>
+              </span>
+            </label>
+          )}
 
           <div className="rounded-lg bg-marine-50 px-4 py-3 text-sm text-marine-700">
             {selection.size === 0
@@ -375,7 +421,11 @@ export default function ReservationFlow({
 
           <div>
             <label className="label" htmlFor="nomClient">
-              {mode === "STRUCTURE" ? "Nom de la structure *" : "Nom et prénom *"}
+              {mode === "STRUCTURE"
+                ? "Nom de la structure *"
+                : couple
+                ? "Noms et prénoms du couple *"
+                : "Nom et prénom *"}
             </label>
             <input
               id="nomClient"
@@ -383,7 +433,13 @@ export default function ReservationFlow({
               required
               className="champ"
               autoComplete={mode === "STRUCTURE" ? "organization" : "name"}
-              placeholder={mode === "STRUCTURE" ? "Ex. EHPAD Les Tilleuls" : undefined}
+              placeholder={
+                mode === "STRUCTURE"
+                  ? "Ex. EHPAD Les Tilleuls"
+                  : couple
+                  ? "Ex. Jeanne et Paul Martin"
+                  : undefined
+              }
             />
           </div>
 
@@ -412,14 +468,14 @@ export default function ReservationFlow({
             <label className="label" htmlFor="adresse">
               {mode === "STRUCTURE"
                 ? "Adresse postale *"
-                : "Adresse de prise en charge (facultatif)"}
+                : "Adresse du domicile (point de départ) *"}
             </label>
             <input
               id="adresse"
               name="adresse"
-              required={mode === "STRUCTURE"}
+              required
               className="champ"
-              autoComplete={mode === "STRUCTURE" ? "street-address" : undefined}
+              autoComplete="street-address"
             />
           </div>
 

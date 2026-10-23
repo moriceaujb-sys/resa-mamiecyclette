@@ -22,7 +22,7 @@ export default function BeneficiairesTable({
         b.email,
         b.adresse,
         b.besoinsParticuliers,
-        b.type === "STRUCTURE" ? "structure" : "bénéficiaire",
+        b.type === "STRUCTURE" ? "structure" : b.couple ? "couple" : "bénéficiaire",
       ]
         .filter(Boolean)
         .some((v) => (v as string).toLowerCase().includes(t))
@@ -84,6 +84,8 @@ export default function BeneficiairesTable({
                       Structure
                       {b.nbBeneficiairesEstime != null ? ` · ~${b.nbBeneficiairesEstime} pers.` : ""}
                     </span>
+                  ) : b.couple ? (
+                    "👫 Couple (2 places)"
                   ) : (
                     "Bénéficiaire"
                   )}

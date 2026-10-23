@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashMotDePasse, creerSessionPedaleur } from "@/lib/auth-pedaleur";
+import { champsAssurance, versDateNaissance } from "@/lib/pedaleurs";
 
 const schema = z.object({
   nom: z.string().trim().min(2, "Nom trop court").max(120),
   email: z.string().trim().email("Email invalide").max(180),
   motDePasse: z.string().min(6, "6 caractères minimum").max(200),
+  ...champsAssurance,
 });
 
 export async function POST(request: Request) {
@@ -29,6 +31,9 @@ export async function POST(request: Request) {
     data: {
       nom: parsed.data.nom,
       email,
+      telephone: parsed.data.telephone,
+      dateNaissance: versDateNaissance(parsed.data.dateNaissance),
+      adresse: parsed.data.adresse,
       motDePasseHash: hashMotDePasse(parsed.data.motDePasse),
     },
   });

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Link from "next/link";
-import { CAPACITE, DUREE_MINUTES, LIEU_DEPART } from "@/lib/horaires";
+import { CAPACITE, DUREE_MINUTES, LIEU_TRIPORTEUR } from "@/lib/horaires";
 
 // Vidéo de présentation (Vimeo, lien privé avec hash). `dnt=1` : pas de suivi
 // publicitaire ni de cookies Vimeo tant que la vidéo n'est pas lancée.
@@ -33,7 +33,7 @@ export default function Accueil() {
               pédaler seul&nbsp;?
             </h1>
             <p className="mt-5 text-lg text-slate-700">
-              Avec <strong>Mamie Cyclette</strong>, devenez{" "}
+              Avec <strong>Mamie Cyclette et le CCAS d&apos;Angers</strong>, devenez{" "}
               <strong>pédaleur volontaire</strong> et offrez à une personne âgée
               un moment de liberté, de plein air et de partage.
             </p>
@@ -106,7 +106,9 @@ export default function Accueil() {
             </h3>
             <p className="mt-2 text-slate-700">
               Les lundis, mercredis et vendredis, quatre départs par jour ({DUREE_MINUTES}{" "}
-              minutes chacun). {LIEU_DEPART}, à Angers.
+              minutes chacun). Le triporteur vous attend à l&apos;
+              {LIEU_TRIPORTEUR}, à Angers ; la balade part du domicile de la
+              personne.
             </p>
           </li>
           <li className="rounded-2xl bg-white p-6 shadow-sm">

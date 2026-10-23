@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { parisVersUtc } from "@/lib/horaires";
+import { places } from "@/lib/creneaux";
 
 // Indicateurs du tableau de bord de pilotage (espace équipe).
 // Une « balade prise » = un créneau actif qui a un pédaleur bénévole, ou qui est
@@ -83,7 +84,9 @@ export async function indicateursPilotage(): Promise<Indicateurs> {
           where: { statut: { in: ["EN_ATTENTE", "CONFIRMEE"] } },
           select: {
             statut: true,
-            beneficiaire: { select: { type: true, nbBeneficiairesEstime: true } },
+            beneficiaire: {
+              select: { type: true, nbBeneficiairesEstime: true, couple: true },
+            },
           },
         },
       },
@@ -131,12 +134,13 @@ export async function indicateursPilotage(): Promise<Indicateurs> {
     const nbPersonnes = c.disponibilites.filter(
       (d) => d.beneficiaire.type === "PERSONNE"
     ).length;
-    // Passagers : les personnes confirmées, ou l'estimation de la structure.
+    // Passagers : les personnes confirmées (un couple compte pour 2), ou
+    // l'estimation de la structure.
     const passagers = structure
       ? structure.beneficiaire.nbBeneficiairesEstime ?? 0
-      : c.disponibilites.filter(
-          (d) => d.beneficiaire.type === "PERSONNE" && d.statut === "CONFIRMEE"
-        ).length;
+      : c.disponibilites
+          .filter((d) => d.beneficiaire.type === "PERSONNE" && d.statut === "CONFIRMEE")
+          .reduce((n, d) => n + places(d.beneficiaire), 0);
 
     if (prise) {
       if (passe) {

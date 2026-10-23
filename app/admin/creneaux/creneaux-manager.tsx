@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LIBELLE_STATUT, ratioStatut, type StatutCreneau } from "@/lib/statut";
+import { LIEU_DEPART } from "@/lib/horaires";
 
 type CreneauAdmin = {
   id: string;
@@ -19,6 +20,7 @@ type CreneauAdmin = {
     id: string;
     type: "PERSONNE" | "STRUCTURE";
     nbBeneficiairesEstime: number | null;
+    couple: boolean;
     nom: string;
     telephone: string;
     email: string | null;
@@ -26,7 +28,7 @@ type CreneauAdmin = {
     besoinsParticuliers: string | null;
     statut: string;
   }[];
-  pedaleur: { nom: string; email: string } | null;
+  pedaleur: { nom: string; email: string; telephone: string | null } | null;
 };
 
 function fmt(iso: string): string {
@@ -107,7 +109,7 @@ export default function CreneauxManager({
     const ok = await api("POST", {
       date: new Date(date).toISOString(),
       dureeMinutes: Number(formData.get("dureeMinutes") || 60),
-      lieuDepart: String(formData.get("lieuDepart") || "Devant le CCAS"),
+      lieuDepart: String(formData.get("lieuDepart") || LIEU_DEPART),
     });
     if (ok) setAjoutOuvert(false);
   }
@@ -118,7 +120,7 @@ export default function CreneauxManager({
       id,
       date: date ? new Date(date).toISOString() : undefined,
       dureeMinutes: Number(formData.get("dureeMinutes") || 60),
-      lieuDepart: String(formData.get("lieuDepart") || "Devant le CCAS"),
+      lieuDepart: String(formData.get("lieuDepart") || LIEU_DEPART),
     });
     if (ok) setEditionId(null);
   }
@@ -131,6 +133,16 @@ export default function CreneauxManager({
     )
       return;
     await api("DELETE", { id });
+  }
+
+  async function retirerPedaleur(c: CreneauAdmin) {
+    if (
+      !confirm(
+        `Retirer ${c.pedaleur?.nom ?? "le pédaleur"} de ce créneau ? Les bénéficiaires restent inscrits et la balade est de nouveau proposée aux pédaleurs.`
+      )
+    )
+      return;
+    await api("PATCH", { id: c.id, retirerPedaleur: true });
   }
 
   function basculerDetails(id: string) {
@@ -177,7 +189,7 @@ export default function CreneauxManager({
           </div>
           <div>
             <label className="label text-sm">Lieu de départ</label>
-            <input name="lieuDepart" defaultValue="Devant le CCAS" className="champ text-base" />
+            <input name="lieuDepart" defaultValue={LIEU_DEPART} className="champ text-base" />
           </div>
           <div className="sm:col-span-4">
             <button type="submit" disabled={occupe} className="btn-primary text-base">
@@ -199,7 +211,7 @@ export default function CreneauxManager({
           return (
             <div key={c.id} className="rounded-xl bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge[c.statut]}`}
                   >
@@ -223,6 +235,12 @@ export default function CreneauxManager({
                         })()
                       : c.lieuDepart}
                   </span>
+                  {c.pedaleur && (
+                    <span className="text-sm text-slate-600">
+                      🚲 {c.pedaleur.nom}
+                      {c.pedaleur.telephone ? ` · 📞 ${c.pedaleur.telephone}` : ""}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -308,8 +326,9 @@ export default function CreneauxManager({
                               href={`/admin/beneficiaires/${b.id}`}
                               className="font-medium text-marine-600 hover:underline"
                             >
-                              {b.type === "STRUCTURE" ? "🏢" : "🧓"} {b.nom}
+                              {b.type === "STRUCTURE" ? "🏢" : b.couple ? "👫" : "🧓"} {b.nom}
                             </Link>{" "}
+                            {b.couple ? "· couple (2 places) " : ""}
                             {b.type === "STRUCTURE" && b.nbBeneficiairesEstime != null
                               ? `· 👥 ~${b.nbBeneficiairesEstime} bénéficiaires `
                               : ""}
@@ -325,9 +344,20 @@ export default function CreneauxManager({
                   <div>
                     <h4 className="mb-1 text-sm font-semibold text-slate-600">Pédaleur</h4>
                     {c.pedaleur ? (
-                      <p className="text-sm text-slate-600">
-                        🚲 <strong>{c.pedaleur.nom}</strong> · ✉️ {c.pedaleur.email}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm text-slate-600">
+                          🚲 <strong>{c.pedaleur.nom}</strong>
+                          {c.pedaleur.telephone ? ` · 📞 ${c.pedaleur.telephone}` : ""} · ✉️{" "}
+                          {c.pedaleur.email}
+                        </p>
+                        <button
+                          disabled={occupe}
+                          onClick={() => retirerPedaleur(c)}
+                          className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Retirer le pédaleur
+                        </button>
+                      </div>
                     ) : c.structure ? (
                       <p className="text-sm text-slate-600">
                         La structure vient avec son propre pédaleur.

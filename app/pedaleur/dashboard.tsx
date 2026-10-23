@@ -2,20 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { CreneauPedaleur, BaladePedaleur } from "@/lib/creneaux";
+import { LIEU_TRIPORTEUR } from "@/lib/horaires";
 
-type CreneauPedaleur = {
-  id: string;
-  date: string;
-  dureeMinutes: number;
-  lieuDepart: string;
-  nbBeneficiaires: number;
-};
-
-type Balade = {
-  id: string;
-  date: string;
-  lieuDepart: string;
-  beneficiaires: { nom: string; telephone: string }[];
+type Profil = {
+  complet: boolean;
+  telephone: string;
+  dateNaissance: string;
+  adresse: string;
 };
 
 function fmt(iso: string): string {
@@ -29,30 +23,40 @@ function fmt(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Moins de 48 h avant le départ : on demande aussi de prévenir l'équipe.
+function departProche(iso: string): boolean {
+  return new Date(iso).getTime() - Date.now() < 48 * 3600 * 1000;
+}
+
 export default function Dashboard({
   nom,
   aConfirmer,
   mesBalades,
+  profil,
 }: {
   nom: string;
   aConfirmer: CreneauPedaleur[];
-  mesBalades: Balade[];
+  mesBalades: BaladePedaleur[];
+  profil: Profil;
 }) {
   const router = useRouter();
   const [occupe, setOccupe] = useState(false);
+  const [editionProfil, setEditionProfil] = useState(false);
+  const [erreurProfil, setErreurProfil] = useState<string | null>(null);
+  const nbNouveaux = aConfirmer.filter((c) => c.nouveau).length;
 
   async function deconnexion() {
     await fetch("/api/pedaleur/deconnexion", { method: "POST" });
     router.refresh();
   }
 
-  async function confirmer(id: string) {
+  async function action(url: string, creneauId: string) {
     setOccupe(true);
     try {
-      const res = await fetch("/api/pedaleur/confirmer", {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ creneauId: id }),
+        body: JSON.stringify({ creneauId }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -63,6 +67,94 @@ export default function Dashboard({
       setOccupe(false);
     }
   }
+
+  function retirer(b: BaladePedaleur) {
+    const message = departProche(b.date)
+      ? "Vous retirer de cette balade ? Elle a lieu dans moins de 48 h : merci de prévenir aussi l'équipe du CCAS par téléphone."
+      : "Vous retirer de cette balade ? Elle sera de nouveau proposée aux autres pédaleurs.";
+    if (confirm(message)) action("/api/pedaleur/retirer", b.id);
+  }
+
+  async function enregistrerProfil(formData: FormData) {
+    setOccupe(true);
+    setErreurProfil(null);
+    try {
+      const res = await fetch("/api/pedaleur/profil", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telephone: formData.get("telephone"),
+          dateNaissance: formData.get("dateNaissance"),
+          adresse: formData.get("adresse"),
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setErreurProfil(d.error || "Une erreur est survenue.");
+        return;
+      }
+      setEditionProfil(false);
+      router.refresh();
+    } finally {
+      setOccupe(false);
+    }
+  }
+
+  const formulaireProfil = (
+    <form action={enregistrerProfil} className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div>
+        <label className="label" htmlFor="telephone">
+          Téléphone
+        </label>
+        <input
+          id="telephone"
+          name="telephone"
+          type="tel"
+          required
+          defaultValue={profil.telephone}
+          className="champ"
+          autoComplete="tel"
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="dateNaissance">
+          Date de naissance
+        </label>
+        <input
+          id="dateNaissance"
+          name="dateNaissance"
+          type="date"
+          required
+          defaultValue={profil.dateNaissance}
+          className="champ"
+          autoComplete="bday"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <label className="label" htmlFor="adresse">
+          Adresse postale
+        </label>
+        <input
+          id="adresse"
+          name="adresse"
+          required
+          defaultValue={profil.adresse}
+          className="champ"
+          autoComplete="street-address"
+        />
+      </div>
+      {erreurProfil && (
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700 sm:col-span-2">
+          {erreurProfil}
+        </p>
+      )}
+      <div className="sm:col-span-2">
+        <button type="submit" disabled={occupe} className="btn-primary">
+          Enregistrer mes informations
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div>
@@ -76,7 +168,41 @@ export default function Dashboard({
         </button>
       </div>
 
-      <section className="mb-8">
+      {!profil.complet && (
+        <section className="mb-6 rounded-xl border-2 border-soleil-400 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-marine-700">
+            Merci de compléter vos informations
+          </h2>
+          <p className="mt-1 text-slate-700">
+            Ces informations sont demandées pour l&apos;
+            <strong>assurance du CCAS</strong>, qui couvre les pédaleurs pendant
+            les balades.
+          </p>
+          {formulaireProfil}
+        </section>
+      )}
+
+      {nbNouveaux > 0 && (
+        <a
+          href="#a-confirmer"
+          className="mb-6 flex items-center gap-3 rounded-xl bg-soleil-400 px-5 py-4 font-semibold text-marine-700 shadow-sm hover:bg-soleil-500"
+        >
+          <span className="text-2xl" aria-hidden="true">
+            🔔
+          </span>
+          {nbNouveaux === 1
+            ? "Il y a 1 nouvelle balade depuis votre dernière visite, allez voir !"
+            : `Il y a ${nbNouveaux} nouvelles balades depuis votre dernière visite, allez voir !`}
+        </a>
+      )}
+
+      <p className="mb-6 rounded-xl bg-white p-4 text-slate-700 shadow-sm">
+        🚲 Le triporteur est à récupérer à l&apos;<strong>{LIEU_TRIPORTEUR}</strong>.
+        La balade part du <strong>domicile de la personne</strong> : son adresse
+        s&apos;affiche dans « Mes balades » une fois le créneau confirmé.
+      </p>
+
+      <section id="a-confirmer" className="mb-8 scroll-mt-4">
         <h2 className="mb-1 text-xl font-bold text-marine-700">
           Balades à confirmer
         </h2>
@@ -94,10 +220,17 @@ export default function Dashboard({
             {aConfirmer.map((c) => (
               <div
                 key={c.id}
-                className="rounded-xl bg-white p-4 shadow-sm sm:flex sm:items-center sm:justify-between"
+                className={`rounded-xl bg-white p-4 shadow-sm sm:flex sm:items-center sm:justify-between ${
+                  c.nouveau ? "ring-2 ring-soleil-400" : ""
+                }`}
               >
                 <div>
                   <div className="font-semibold capitalize text-slate-800">
+                    {c.nouveau && (
+                      <span className="mr-2 rounded-full bg-soleil-400 px-2 py-0.5 text-xs font-bold normal-case text-marine-700">
+                        Nouveau
+                      </span>
+                    )}
                     {fmt(c.date)}
                   </div>
                   <div className="text-sm text-slate-600">
@@ -107,7 +240,7 @@ export default function Dashboard({
                 </div>
                 <button
                   disabled={occupe}
-                  onClick={() => confirmer(c.id)}
+                  onClick={() => action("/api/pedaleur/confirmer", c.id)}
                   className="btn-soleil mt-3 sm:mt-0"
                 >
                   Je pédale ce créneau
@@ -118,7 +251,7 @@ export default function Dashboard({
         )}
       </section>
 
-      <section>
+      <section className="mb-8">
         <h2 className="mb-4 text-xl font-bold text-marine-700">Mes balades</h2>
         {mesBalades.length === 0 ? (
           <p className="rounded-xl bg-white p-6 text-slate-600 shadow-sm">
@@ -128,18 +261,33 @@ export default function Dashboard({
           <div className="space-y-3">
             {mesBalades.map((b) => (
               <div key={b.id} className="rounded-xl bg-white p-4 shadow-sm">
-                <div className="font-semibold capitalize text-slate-800">
-                  {fmt(b.date)}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold capitalize text-slate-800">
+                      {fmt(b.date)}
+                    </div>
+                    <div className="text-sm text-slate-600">📍 {b.lieuDepart}</div>
+                  </div>
+                  {b.aVenir && (
+                    <button
+                      disabled={occupe}
+                      onClick={() => retirer(b)}
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-200 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Me retirer de cette balade
+                    </button>
+                  )}
                 </div>
-                <div className="text-sm text-slate-600">📍 {b.lieuDepart}</div>
                 <div className="mt-2 space-y-1">
                   {b.beneficiaires.map((p, i) => (
                     <div key={i} className="text-sm text-slate-600">
-                      🧓 {p.nom} · 📞 {p.telephone}
+                      {p.couple ? "👫" : "🧓"} {p.nom}
+                      {p.couple ? " (couple)" : ""} · 📞 {p.telephone}
+                      {p.adresse ? ` · 🏠 ${p.adresse}` : ""}
                     </div>
                   ))}
                 </div>
-                {b.beneficiaires.length < 2 && (
+                {b.nbPassagers < 2 && (
                   <div className="mt-1 text-sm font-medium text-marine-600">
                     En attente d&apos;un 2e passager…
                   </div>
@@ -149,6 +297,30 @@ export default function Dashboard({
           </div>
         )}
       </section>
+
+      {profil.complet && (
+        <section className="rounded-xl bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-marine-700">Mes informations</h2>
+            <button
+              onClick={() => setEditionProfil((v) => !v)}
+              className="text-sm font-medium text-marine-600 hover:underline"
+            >
+              {editionProfil ? "Fermer" : "Modifier"}
+            </button>
+          </div>
+          {editionProfil ? (
+            formulaireProfil
+          ) : (
+            <p className="mt-2 text-sm text-slate-600">
+              📞 {profil.telephone} · 🏠 {profil.adresse}
+            </p>
+          )}
+          <p className="mt-3 text-xs text-slate-600">
+            Ces informations sont transmises à l&apos;assurance du CCAS.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

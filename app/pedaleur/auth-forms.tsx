@@ -33,6 +33,9 @@ export default function AuthForms({
             nom: formData.get("nom"),
             email: formData.get("email"),
             motDePasse: formData.get("motDePasse"),
+            telephone: formData.get("telephone"),
+            dateNaissance: formData.get("dateNaissance"),
+            adresse: formData.get("adresse"),
           };
     const res = await fetch(url, {
       method: "POST",
@@ -85,6 +88,48 @@ export default function AuthForms({
               <input id="nom" name="nom" required className="champ" autoComplete="name" />
             </div>
           )}
+          {mode === "inscription" && (
+            <>
+              <div>
+                <label className="label" htmlFor="dateNaissance">
+                  Date de naissance
+                </label>
+                <input
+                  id="dateNaissance"
+                  name="dateNaissance"
+                  type="date"
+                  required
+                  className="champ"
+                  autoComplete="bday"
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="adresse">
+                  Adresse postale
+                </label>
+                <input
+                  id="adresse"
+                  name="adresse"
+                  required
+                  className="champ"
+                  autoComplete="street-address"
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="telephone">
+                  Téléphone
+                </label>
+                <input
+                  id="telephone"
+                  name="telephone"
+                  type="tel"
+                  required
+                  className="champ"
+                  autoComplete="tel"
+                />
+              </div>
+            </>
+          )}
           <div>
             <label className="label" htmlFor="email">
               Email
@@ -104,6 +149,13 @@ export default function AuthForms({
               autoComplete={mode === "connexion" ? "current-password" : "new-password"}
             />
           </div>
+          {mode === "inscription" && (
+            <p className="rounded-lg bg-marine-50 px-4 py-3 text-sm text-marine-700">
+              Toutes ces informations sont demandées pour l&apos;
+              <strong>assurance du CCAS</strong>, qui couvre les pédaleurs pendant
+              les balades.
+            </p>
+          )}
           {erreur && (
             <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700">{erreur}</p>
           )}

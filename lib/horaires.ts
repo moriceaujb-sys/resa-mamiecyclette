@@ -3,15 +3,26 @@
 // l'horizon de réservation.
 
 export const JOURS_OUVERTS = [1, 3, 5]; // 1 = lundi, 3 = mercredi, 5 = vendredi
-export const HORAIRES = [
+// Heure d'été (du dernier dimanche de mars au dernier dimanche d'octobre).
+export const HORAIRES_ETE = [
   { h: 10, min: 0 },
   { h: 11, min: 15 },
   { h: 15, min: 0 },
   { h: 16, min: 0 },
 ];
+// Heure d'hiver (du dernier dimanche d'octobre au dernier dimanche de mars) :
+// l'après-midi est avancé pour rentrer avant la nuit.
+export const HORAIRES_HIVER = [
+  { h: 10, min: 0 },
+  { h: 11, min: 15 },
+  { h: 14, min: 30 },
+  { h: 15, min: 45 },
+];
 export const DUREE_MINUTES = 60; // créneaux d'une heure
 export const CAPACITE = 2; // places par créneau (capacité du triporteur)
-export const LIEU_DEPART = "Devant le CCAS";
+export const LIEU_DEPART = "Domicile de la personne";
+// Où le pédaleur récupère (et rapporte) le triporteur.
+export const LIEU_TRIPORTEUR = "Espace Robert Robin";
 export const HORIZON_JOURS = 120; // ~4 mois glissants de réservation à l'avance
 
 const TZ = "Europe/Paris";
@@ -41,6 +52,11 @@ function offsetParis(ts: number): number {
     Number(m.second)
   );
   return (asUTC - ts) / 60000;
+}
+
+// Heure d'hiver officielle à cet instant (Paris en UTC+1 au lieu de UTC+2).
+export function estHeureHiver(date: Date): boolean {
+  return offsetParis(date.getTime()) === 60;
 }
 
 // Instant UTC correspondant à une heure "murale" de Paris.
@@ -78,7 +94,8 @@ export function genererSlots(from: Date, to: Date): Date[] {
     const midi = parisVersUtc(y, mo, d, 12, 0);
     if (midi.getTime() > to.getTime()) break;
     if (JOURS_OUVERTS.includes(jourSemaineParis(midi))) {
-      for (const t of HORAIRES) {
+      const horaires = estHeureHiver(midi) ? HORAIRES_HIVER : HORAIRES_ETE;
+      for (const t of horaires) {
         const slot = parisVersUtc(y, mo, d, t.h, t.min);
         if (slot.getTime() > from.getTime() && slot.getTime() <= to.getTime()) {
           slots.push(slot);

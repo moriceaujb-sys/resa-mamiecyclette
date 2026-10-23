@@ -22,6 +22,12 @@ const CARTES = [
     desc: "Rechercher un bénéficiaire, consulter et modifier sa fiche.",
   },
   {
+    href: "/admin/benevoles",
+    emoji: "🚲",
+    titre: "Bénévoles",
+    desc: "Liste des pédaleurs pour l'assurance du CCAS (téléchargeable pour Excel).",
+  },
+  {
     href: "/admin/pilotage",
     emoji: "📊",
     titre: "Tableau de bord de pilotage",

@@ -18,6 +18,20 @@ export default function AidePage() {
           association…) peut aussi réserver un créneau entier avec son propre
           pédaleur (voir plus bas).
         </p>
+        <p className="mt-2 text-slate-700">
+          La balade part du <strong>domicile de la personne</strong> : son
+          adresse est donc obligatoire à la réservation. Le pédaleur récupère le
+          triporteur à l&apos;<strong>Espace Robert Robin</strong> et voit
+          l&apos;adresse et le téléphone des passagers dans son espace dès
+          qu&apos;il a confirmé la balade.
+        </p>
+        <p className="mt-2 text-slate-700">
+          <strong>Un couple</strong> : dans la page Réservation, cochez « C&apos;est
+          un couple ». Le couple occupe les <strong>2 places</strong> du
+          triporteur : seuls les créneaux encore libres sont proposés, et le
+          créneau est complet dès l&apos;enregistrement (il n&apos;attend plus
+          qu&apos;un pédaleur).
+        </p>
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -99,8 +113,22 @@ export default function AidePage() {
           Gérer les créneaux
         </h2>
         <p className="text-slate-700">
-          Les créneaux se génèrent <strong>automatiquement</strong> (lundi,
-          mercredi, vendredi à 10h, 11h15, 15h et 16h, sur les mois à venir). Dans
+          Les créneaux se génèrent <strong>automatiquement</strong> le lundi, le
+          mercredi et le vendredi, sur les mois à venir :
+        </p>
+        <ul className="my-2 list-disc space-y-1 pl-6 text-slate-700">
+          <li>
+            <strong>à l&apos;heure d&apos;été</strong> (du dernier dimanche de
+            mars au dernier dimanche d&apos;octobre) : 10h, 11h15, 15h et 16h ;
+          </li>
+          <li>
+            <strong>à l&apos;heure d&apos;hiver</strong> (du dernier dimanche
+            d&apos;octobre au dernier dimanche de mars) : 10h, 11h15, 14h30 et
+            15h45.
+          </li>
+        </ul>
+        <p className="text-slate-700">
+          Chaque balade dure 1 heure. Dans
           la page <strong>Créneaux</strong>, vous pouvez en plus{" "}
           <strong>ajouter</strong> un créneau exceptionnel, <strong>modifier</strong>{" "}
           (date, heure, durée, lieu), <strong>désactiver</strong> ou{" "}
@@ -119,6 +147,38 @@ export default function AidePage() {
           ensuite se rajouter à la balade prévue, mais seulement si elle a lieu
           dans <strong>plus de 48 heures</strong> ; à moins de 48 h, le créneau
           n&apos;est plus proposé à la réservation.
+        </p>
+        <p className="mt-2 text-slate-700">
+          <strong>Se retirer d&apos;une balade</strong> : dans « Mes balades »,
+          le pédaleur peut cliquer sur « Me retirer de cette balade ». Rien
+          n&apos;est supprimé : les bénéficiaires restent inscrits sur le créneau
+          (ils repassent « en attente ») et la balade est de nouveau proposée
+          aux autres pédaleurs. À moins de 48 h du départ, il lui est demandé de
+          prévenir aussi l&apos;équipe par téléphone. L&apos;équipe peut faire
+          la même chose depuis la page <strong>Créneaux</strong> (Détails →
+          « Retirer le pédaleur »). Le numéro du pédaleur est affiché sur chaque
+          créneau qu&apos;il a pris.
+        </p>
+        <p className="mt-2 text-slate-700">
+          <strong>Nouvelles balades</strong> : quand un pédaleur se connecte, les
+          balades apparues depuis sa dernière visite sont signalées par un
+          bandeau « Il y a de nouvelles balades, allez voir ! » et une pastille
+          « Nouveau ».
+        </p>
+      </div>
+
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-marine-700">
+          Bénévoles et assurance
+        </h2>
+        <p className="text-slate-700">
+          À l&apos;inscription, chaque pédaleur indique son nom et prénom, sa
+          date de naissance, son adresse postale, son téléphone et son email :
+          ces informations sont demandées pour l&apos;
+          <strong>assurance du CCAS</strong>. Les pédaleurs inscrits avant cette
+          règle les voient demandées à leur prochaine connexion. La page{" "}
+          <strong>Bénévoles</strong> présente la liste complète et permet de la
+          télécharger pour l&apos;ouvrir dans Excel.
         </p>
       </div>
 

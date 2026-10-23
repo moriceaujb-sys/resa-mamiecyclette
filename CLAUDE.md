@@ -18,11 +18,23 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 - `lib/statut.ts` (statuts d'un créneau), `lib/creneaux.ts` (génération + requêtes),
   `lib/horaires.ts` (règle récurrente), `lib/beneficiaires.ts`.
 
-## Règles métier (état au 18/09/2026)
-- Un créneau = 2 bénéficiaires (passagers) + 1 pédaleur (bénévole). Créneaux récurrents :
-  lundi, mercredi, vendredi à 10h, 11h15, 15h, 16h (60 min), horizon ~120 jours, générés par
-  `ensureCreneaux()` avec un repère glissant (`Configuration.genereJusquau`) : les modifications
-  manuelles ne sont jamais réécrasées.
+## Règles métier (état au 23/10/2026)
+- Un créneau = 2 places de bénéficiaires (passagers) + 1 pédaleur (bénévole). Créneaux
+  récurrents lundi, mercredi, vendredi (60 min) : 10h, 11h15, 15h, 16h à l'heure d'été ;
+  10h, 11h15, 14h30, 15h45 à l'heure d'hiver (`lib/horaires.ts`, `estHeureHiver`). Horizon
+  ~120 jours, générés par `ensureCreneaux()` avec un repère glissant
+  (`Configuration.genereJusquau`) : les modifications manuelles ne sont jamais réécrasées.
+  Mises à jour ponctuelles des données : `Configuration.versionDonnees` (`miseAJourV1`).
+- Départ du domicile de la personne (adresse obligatoire) ; le triporteur se récupère à
+  l'Espace Robert Robin (`LIEU_DEPART`, `LIEU_TRIPORTEUR`).
+- Couple (`Beneficiaire.couple`) : occupe les 2 places (`places()` dans `lib/creneaux.ts`),
+  seulement sur un créneau vide.
+- Un pédaleur peut se retirer d'une balade à venir (`retirerPedaleur()`) : bénéficiaires
+  repassent EN_ATTENTE, rien n'est supprimé. L'équipe peut faire de même (page Créneaux).
+- Pédaleur : téléphone, date de naissance, adresse demandés pour l'assurance du CCAS
+  (obligatoires à l'inscription, demandés aux anciens comptes au tableau de bord) ;
+  listing + export CSV dans `app/admin/benevoles`. Pastille « Nouveau » via
+  `Pedaleur.derniereVisite`.
 - Bénéficiaire (sans compte) : l'équipe enregistre ses disponibilités sur 1..n créneaux
   (`Disponibilite` EN_ATTENTE). Quand un pédaleur confirme, seuls les bénéficiaires de CE créneau
   passent CONFIRMEE et leurs autres disponibilités passent LIBEREE.
@@ -60,5 +72,6 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 - Ne pas committer `.env`. Comptes de test pédaleur : voir le projet Claude « Resa Mamiecyclette CCAS ».
 
 ## Pistes en attente
+- Charte du pédaleur à ajouter dans Aides & doc (texte attendu).
 - Emails Brevo (lib/email.ts existe mais n'est pas branché), auto-déploiement Railway via l'app
   GitHub, rythme récurrent éditable en admin, export CSV, rappels la veille.

@@ -1,9 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { genererSlots, DUREE_MINUTES, LIEU_DEPART, HORIZON_JOURS } from "@/lib/horaires";
+import type { Prisma } from "@prisma/client";
+import {
+  genererSlots,
+  estHeureHiver,
+  parisVersUtc,
+  DUREE_MINUTES,
+  LIEU_DEPART,
+  HORIZON_JOURS,
+} from "@/lib/horaires";
 import { statutCreneau, StatutCreneau } from "@/lib/statut";
 
 // Disponibilités qui "occupent" une place de bénéficiaire.
 const ACTIVES = ["EN_ATTENTE", "CONFIRMEE"] as const;
+
+// Places occupées par un bénéficiaire : un couple prend les 2 places du triporteur.
+export function places(b: { couple: boolean }): number {
+  return b.couple ? 2 : 1;
+}
+function totalPlaces(dispos: { beneficiaire: { couple: boolean } }[]): number {
+  return dispos.reduce((n, d) => n + places(d.beneficiaire), 0);
+}
 
 // Délai (heures) avant la balade en deçà duquel un bénéficiaire ne peut plus
 // rejoindre un créneau déjà pris par un pédaleur (pas d'ajout de dernière minute).
@@ -25,6 +41,7 @@ export async function ensureCreneaux(): Promise<void> {
     create: { id: 1 },
     update: {},
   });
+  if (config.versionDonnees < 1) await miseAJourV1(now);
   const depuis =
     config.genereJusquau && config.genereJusquau > now ? config.genereJusquau : now;
   if (depuis >= horizon) return;
@@ -47,6 +64,71 @@ export async function ensureCreneaux(): Promise<void> {
   await prisma.configuration.update({
     where: { id: 1 },
     data: { genereJusquau: horizon },
+  });
+}
+
+// Mise à jour ponctuelle (une seule fois, au premier passage après déploiement) des
+// créneaux déjà générés : nouveau lieu de départ et horaires d'hiver de l'après-midi
+// (15h → 14h30, 16h → 15h45). Seuls les créneaux à venir encore vides (aucun
+// bénéficiaire, aucun pédaleur) changent d'heure ; les autres restent tels quels.
+async function miseAJourV1(now: Date): Promise<void> {
+  await prisma.creneau.updateMany({
+    where: { date: { gte: now }, lieuDepart: "Devant le CCAS" },
+    data: { lieuDepart: LIEU_DEPART },
+  });
+
+  const vides = await prisma.creneau.findMany({
+    where: {
+      date: { gte: now },
+      pedaleurId: null,
+      disponibilites: { none: { statut: { in: [...ACTIVES] } } },
+    },
+    select: { id: true, date: true },
+  });
+  const occupes = new Set(
+    (
+      await prisma.creneau.findMany({ where: { date: { gte: now } }, select: { date: true } })
+    ).map((c) => c.date.getTime())
+  );
+  const decalage: Record<string, [number, number]> = { "15:00": [14, 30], "16:00": [15, 45] };
+  for (const c of vides) {
+    if (!estHeureHiver(c.date)) continue;
+    const p: Record<string, string> = {};
+    for (const part of new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Paris",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(c.date))
+      p[part.type] = part.value;
+    const cible = decalage[`${p.hour}:${p.minute}`];
+    if (!cible) continue;
+    const nouvelle = parisVersUtc(Number(p.year), Number(p.month) - 1, Number(p.day), cible[0], cible[1]);
+    if (occupes.has(nouvelle.getTime())) continue;
+    await prisma.creneau.update({ where: { id: c.id }, data: { date: nouvelle } });
+    occupes.add(nouvelle.getTime());
+  }
+
+  await prisma.configuration.update({ where: { id: 1 }, data: { versionDonnees: 1 } });
+}
+
+// Retire le pédaleur d'un créneau sans rien supprimer : les bénéficiaires repassent
+// « en attente » et la balade est de nouveau proposée aux autres pédaleurs.
+// (Leurs disponibilités libérées ailleurs ne sont pas rétablies.)
+export async function retirerPedaleur(
+  tx: Prisma.TransactionClient,
+  creneauId: string
+): Promise<void> {
+  await tx.creneau.update({
+    where: { id: creneauId },
+    data: { pedaleurId: null, confirmeLe: null },
+  });
+  await tx.disponibilite.updateMany({
+    where: { creneauId, statut: "CONFIRMEE", beneficiaire: { type: "PERSONNE" } },
+    data: { statut: "EN_ATTENTE" },
   });
 }
 
@@ -74,21 +156,24 @@ export async function creneauxPourBeneficiaires(): Promise<CreneauBeneficiaire[]
     include: {
       disponibilites: {
         where: { statut: { in: [...ACTIVES] } },
-        select: { id: true, beneficiaire: { select: { type: true } } },
+        select: { id: true, beneficiaire: { select: { type: true, couple: true } } },
       },
     },
   });
   return creneaux
     .filter((c) => !c.disponibilites.some((d) => d.beneficiaire.type === "STRUCTURE"))
-    .map((c) => ({
-      id: c.id,
-      date: c.date.toISOString(),
-      dureeMinutes: c.dureeMinutes,
-      lieuDepart: c.lieuDepart,
-      nbBeneficiaires: c.disponibilites.length,
-      placesRestantes: Math.max(0, 2 - c.disponibilites.length),
-      aPedaleur: c.pedaleurId != null,
-    }))
+    .map((c) => {
+      const nb = totalPlaces(c.disponibilites);
+      return {
+        id: c.id,
+        date: c.date.toISOString(),
+        dureeMinutes: c.dureeMinutes,
+        lieuDepart: c.lieuDepart,
+        nbBeneficiaires: nb,
+        placesRestantes: Math.max(0, 2 - nb),
+        aPedaleur: c.pedaleurId != null,
+      };
+    })
     .filter((c) => c.nbBeneficiaires < 2)
     .filter((c) => !c.aPedaleur || peutRejoindreAvecPedaleur(new Date(c.date), now));
 }
@@ -100,17 +185,24 @@ export type CreneauPedaleur = {
   dureeMinutes: number;
   lieuDepart: string;
   nbBeneficiaires: number;
+  nouveau: boolean; // un bénéficiaire s'y est positionné depuis la dernière visite
 };
 
 // Créneaux qu'un pédaleur peut prendre : au moins 1 bénéficiaire en attente, sans pédaleur.
 // (Un 2e bénéficiaire pourra encore rejoindre la balade jusqu'à 48 h avant.)
-export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
+// `derniereVisite` : précédente visite du pédaleur, pour marquer les nouveautés.
+export async function creneauxPourPedaleurs(
+  derniereVisite: Date | null = null
+): Promise<CreneauPedaleur[]> {
   const now = new Date();
   const creneaux = await prisma.creneau.findMany({
     where: { actif: true, date: { gte: now }, pedaleurId: null },
     orderBy: { date: "asc" },
     include: {
-      disponibilites: { where: { statut: "EN_ATTENTE" }, select: { id: true } },
+      disponibilites: {
+        where: { statut: "EN_ATTENTE" },
+        select: { createdAt: true, beneficiaire: { select: { couple: true } } },
+      },
     },
   });
   return creneaux
@@ -119,7 +211,10 @@ export async function creneauxPourPedaleurs(): Promise<CreneauPedaleur[]> {
       date: c.date.toISOString(),
       dureeMinutes: c.dureeMinutes,
       lieuDepart: c.lieuDepart,
-      nbBeneficiaires: c.disponibilites.length,
+      nbBeneficiaires: totalPlaces(c.disponibilites),
+      nouveau:
+        derniereVisite != null &&
+        c.disponibilites.some((d) => d.createdAt > derniereVisite),
     }))
     .filter((c) => c.nbBeneficiaires >= 1);
 }
@@ -128,7 +223,9 @@ export type BaladePedaleur = {
   id: string;
   date: string;
   lieuDepart: string;
-  beneficiaires: { nom: string; telephone: string }[];
+  aVenir: boolean;
+  nbPassagers: number;
+  beneficiaires: { nom: string; telephone: string; adresse: string | null; couple: boolean }[];
 };
 
 // Balades confirmées par un pédaleur (ses engagements).
@@ -139,17 +236,24 @@ export async function baladesDuPedaleur(pedaleurId: string): Promise<BaladePedal
     include: {
       disponibilites: {
         where: { statut: "CONFIRMEE" },
-        include: { beneficiaire: { select: { nom: true, telephone: true } } },
+        include: {
+          beneficiaire: { select: { nom: true, telephone: true, adresse: true, couple: true } },
+        },
       },
     },
   });
+  const now = new Date();
   return creneaux.map((c) => ({
     id: c.id,
     date: c.date.toISOString(),
     lieuDepart: c.lieuDepart,
+    aVenir: c.date > now,
+    nbPassagers: totalPlaces(c.disponibilites),
     beneficiaires: c.disponibilites.map((d) => ({
       nom: d.beneficiaire.nom,
       telephone: d.beneficiaire.telephone,
+      adresse: d.beneficiaire.adresse,
+      couple: d.beneficiaire.couple,
     })),
   }));
 }
@@ -169,6 +273,7 @@ export type CreneauAdmin = {
     id: string;
     type: "PERSONNE" | "STRUCTURE";
     nbBeneficiairesEstime: number | null;
+    couple: boolean;
     nom: string;
     telephone: string;
     email: string | null;
@@ -176,7 +281,7 @@ export type CreneauAdmin = {
     besoinsParticuliers: string | null;
     statut: string;
   }[];
-  pedaleur: { nom: string; email: string } | null;
+  pedaleur: { nom: string; email: string; telephone: string | null } | null;
 };
 
 export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
@@ -186,7 +291,7 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
     orderBy: { date: "asc" },
     take: 500,
     include: {
-      pedaleur: { select: { nom: true, email: true } },
+      pedaleur: { select: { nom: true, email: true, telephone: true } },
       disponibilites: {
         where: { statut: { in: [...ACTIVES] } },
         include: { beneficiaire: true },
@@ -194,7 +299,7 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
     },
   });
   return creneaux.map((c) => {
-    const nb = c.disponibilites.length;
+    const nb = totalPlaces(c.disponibilites);
     const aPedaleur = c.pedaleurId != null;
     const structure = c.disponibilites.some((d) => d.beneficiaire.type === "STRUCTURE");
     return {
@@ -211,6 +316,7 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
         id: d.beneficiaire.id,
         type: d.beneficiaire.type,
         nbBeneficiairesEstime: d.beneficiaire.nbBeneficiairesEstime,
+        couple: d.beneficiaire.couple,
         nom: d.beneficiaire.nom,
         telephone: d.beneficiaire.telephone,
         email: d.beneficiaire.email,
@@ -218,7 +324,9 @@ export async function creneauxAdmin(): Promise<CreneauAdmin[]> {
         besoinsParticuliers: d.beneficiaire.besoinsParticuliers,
         statut: d.statut,
       })),
-      pedaleur: c.pedaleur ? { nom: c.pedaleur.nom, email: c.pedaleur.email } : null,
+      pedaleur: c.pedaleur
+        ? { nom: c.pedaleur.nom, email: c.pedaleur.email, telephone: c.pedaleur.telephone }
+        : null,
     };
   });
 }

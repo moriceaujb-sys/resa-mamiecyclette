@@ -16,7 +16,7 @@ model Creneau {
   date                  DateTime
   dureeMinutes          Int             @default(60)
   capaciteBeneficiaires Int             @default(2)
-  lieuDepart            String          @default("Devant le CCAS")
+  lieuDepart            String          @default("Domicile de la personne")
   actif                 Boolean         @default(true)
   pedaleur              Pedaleur?       @relation(fields: [pedaleurId], references: [id])
   pedaleurId            String?
@@ -44,6 +44,7 @@ model Beneficiaire {
   adresse               String?
   besoinsParticuliers   String?          @db.Text
   nbBeneficiairesEstime Int?             // structures : nombre estimé de personnes promenées
+  couple                Boolean          @default(false) // personne : un couple, occupe les 2 places
   disponibilites      Disponibilite[]
   createdAt           DateTime        @default(now())
 }
@@ -71,18 +72,26 @@ model Disponibilite {
 }
 
 // Un pédaleur : bénévole qui pédale. Dispose d'un compte (inscription libre).
+// Téléphone, date de naissance et adresse : demandés pour l'assurance du CCAS
+// (facultatifs en base pour les comptes créés avant que ces champs existent).
 model Pedaleur {
   id             String    @id @default(cuid())
   email          String    @unique
   nom            String
+  telephone      String?
+  dateNaissance  DateTime? @db.Date
+  adresse        String?
   motDePasseHash String
+  derniereVisite DateTime? // pour signaler les balades apparues depuis sa dernière visite
   creneaux       Creneau[]
   createdAt      DateTime  @default(now())
 }
 
 // Réglages internes (singleton). genereJusquau = date jusqu'à laquelle les
-// créneaux récurrents ont déjà été générés (repère glissant).
+// créneaux récurrents ont déjà été générés (repère glissant). versionDonnees =
+// dernière mise à jour ponctuelle des données appliquée (voir lib/creneaux.ts).
 model Configuration {
-  id            Int       @id @default(1)
-  genereJusquau DateTime?
+  id             Int       @id @default(1)
+  genereJusquau  DateTime?
+  versionDonnees Int       @default(0)
 }

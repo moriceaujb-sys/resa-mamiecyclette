@@ -6,6 +6,7 @@ export type BeneficiaireListe = {
   id: string;
   type: TypeBeneficiaire;
   nbBeneficiairesEstime: number | null;
+  couple: boolean;
   nom: string;
   telephone: string;
   email: string | null;
@@ -24,6 +25,7 @@ export async function beneficiairesListe(): Promise<BeneficiaireListe[]> {
     id: b.id,
     type: b.type,
     nbBeneficiairesEstime: b.nbBeneficiairesEstime,
+    couple: b.couple,
     nom: b.nom,
     telephone: b.telephone,
     email: b.email,
@@ -48,6 +50,7 @@ export type BeneficiaireDetail = {
   id: string;
   type: TypeBeneficiaire;
   nbBeneficiairesEstime: number | null;
+  couple: boolean;
   nom: string;
   telephone: string;
   email: string | null;
@@ -74,6 +77,7 @@ export async function beneficiaireDetail(
     id: b.id,
     type: b.type,
     nbBeneficiairesEstime: b.nbBeneficiairesEstime,
+    couple: b.couple,
     nom: b.nom,
     telephone: b.telephone,
     email: b.email,

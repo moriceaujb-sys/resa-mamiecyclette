@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { peutRejoindreAvecPedaleur } from "@/lib/creneaux";
+import { peutRejoindreAvecPedaleur, places } from "@/lib/creneaux";
 
 // Un bénéficiaire (personne) déclare ses disponibilités sur un ou plusieurs
 // créneaux, ou une structure (EHPAD, association…) réserve fermement un ou
@@ -20,7 +20,14 @@ const schemaPersonne = z.object({
   type: z.literal("PERSONNE"),
   nomClient: z.string().trim().min(2, "Nom trop court").max(120),
   email: z.string().trim().email("Email invalide").max(180).optional().or(z.literal("")),
-  adresse: z.string().trim().max(240).optional().or(z.literal("")),
+  // Le départ se fait du domicile de la personne : l'adresse est indispensable.
+  adresse: z
+    .string({ required_error: "L'adresse du domicile est obligatoire." })
+    .trim()
+    .min(3, "L'adresse du domicile est obligatoire.")
+    .max(240),
+  // Un couple occupe à lui seul les 2 places du triporteur.
+  couple: z.boolean().optional().default(false),
 });
 
 const schemaStructure = z.object({
@@ -73,6 +80,7 @@ export async function POST(request: Request) {
           adresse: d.adresse || null,
           besoinsParticuliers: d.besoinsParticuliers || null,
           nbBeneficiairesEstime: d.type === "STRUCTURE" ? d.nbBeneficiairesEstime : null,
+          couple: d.type === "PERSONNE" ? d.couple : false,
         },
       });
 
@@ -106,6 +114,8 @@ export async function POST(request: Request) {
       }
 
       // ----- Personne : disponibilités en attente d'un pédaleur -----
+      // (un couple ne peut prendre qu'un créneau encore vide, puisqu'il le complète)
+      const besoin = d.couple ? 2 : 1;
       let enAttente = 0;
       let ignores = 0;
       let confirmeDirect = false; // le bénéficiaire a rejoint un créneau déjà pris par un pédaleur
@@ -126,10 +136,14 @@ export async function POST(request: Request) {
         }
         const dispos = await tx.disponibilite.findMany({
           where: { creneauId, statut: { in: ["EN_ATTENTE", "CONFIRMEE"] } },
-          select: { beneficiaire: { select: { type: true } } },
+          select: { beneficiaire: { select: { type: true, couple: true } } },
         });
-        // Créneau complet ou déjà pris par une structure.
-        if (dispos.length >= 2 || dispos.some((x) => x.beneficiaire.type === "STRUCTURE")) {
+        const occupees = dispos.reduce((n, x) => n + places(x.beneficiaire), 0);
+        // Pas assez de places, ou créneau déjà pris par une structure.
+        if (
+          occupees + besoin > 2 ||
+          dispos.some((x) => x.beneficiaire.type === "STRUCTURE")
+        ) {
           ignores++;
           continue;
         }

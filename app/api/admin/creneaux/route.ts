@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { estConnecte } from "@/lib/auth";
+import { LIEU_DEPART } from "@/lib/horaires";
+import { retirerPedaleur } from "@/lib/creneaux";
 
 function refuse() {
   return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
@@ -11,7 +13,7 @@ function refuse() {
 const creationSchema = z.object({
   date: z.string().min(1),
   dureeMinutes: z.number().int().min(5).max(480).default(60),
-  lieuDepart: z.string().trim().min(1).max(160).default("Devant le CCAS"),
+  lieuDepart: z.string().trim().min(1).max(160).default(LIEU_DEPART),
 });
 
 export async function POST(request: Request) {
@@ -34,9 +36,11 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, id: creneau.id }, { status: 201 });
 }
 
-// Modifier un créneau : activer/désactiver et/ou changer date, durée, lieu.
+// Modifier un créneau : activer/désactiver et/ou changer date, durée, lieu,
+// ou retirer le pédaleur (les bénéficiaires repassent en attente).
 const majSchema = z.object({
   id: z.string().min(1),
+  retirerPedaleur: z.literal(true).optional(),
   actif: z.boolean().optional(),
   date: z.string().optional(),
   dureeMinutes: z.number().int().min(5).max(480).optional(),
@@ -50,6 +54,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Données invalides." }, { status: 400 });
   }
   const { id, actif, date, dureeMinutes, lieuDepart } = parsed.data;
+  if (parsed.data.retirerPedaleur) {
+    await prisma.$transaction((tx) => retirerPedaleur(tx, id));
+    return NextResponse.json({ ok: true });
+  }
   const data: Record<string, unknown> = {};
   if (actif !== undefined) data.actif = actif;
   if (dureeMinutes !== undefined) data.dureeMinutes = dureeMinutes;
