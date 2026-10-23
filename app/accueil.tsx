@@ -60,11 +60,11 @@ export default function Accueil() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={PHOTO}
-                alt="Deux passagères souriantes saluent depuis le triporteur Mamie Cyclette, conduit par un pédaleur volontaire en gilet jaune."
-                className="relative aspect-[3/4] w-full rounded-[2rem] object-cover shadow-md"
+                alt="Deux pédaleurs volontaires en gilet jaune et une passagère emmitouflée dans le triporteur Mamie Cyclette admirent un coucher de soleil au bord de l'eau."
+                className="relative aspect-[4/3] w-full rounded-[2rem] object-cover shadow-md"
               />
             ) : (
-              <div className="relative flex aspect-[3/4] w-full items-center justify-center rounded-[2rem] bg-creme shadow-md">
+              <div className="relative flex aspect-[4/3] w-full items-center justify-center rounded-[2rem] bg-creme shadow-md">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/mamie-cyclette-logo.png"
