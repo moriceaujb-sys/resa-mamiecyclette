@@ -1,6 +1,8 @@
 // Charte du pédaleur et contacts utiles : affichés dans l'espace pédaleur et dans
 // l'aide & doc de l'espace équipe.
 
+import Telephone from "@/app/telephone";
+
 // Charte du pédaleur (document Mamie Cyclette / CCAS).
 const CHARTE = [
   "S'inscrire sur des créneaux via le planning partagé par Mamie Cyclette",
@@ -55,14 +57,7 @@ const URGENCES = [
 ];
 
 function Tel({ tel }: { tel: string }) {
-  return (
-    <a
-      href={`tel:${tel.replace(/\s/g, "")}`}
-      className="whitespace-nowrap font-semibold text-marine-600 underline hover:text-marine-700"
-    >
-      {tel}
-    </a>
-  );
+  return <Telephone numero={tel} className="font-semibold" />;
 }
 
 

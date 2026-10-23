@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { BeneficiaireDetail } from "@/lib/beneficiaires";
+import Telephone from "@/app/telephone";
 
 function fmt(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -198,7 +199,9 @@ export default function BeneficiaireDetailVue({ b }: { b: BeneficiaireDetail }) 
           <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-slate-600">Téléphone</dt>
-              <dd className="text-slate-800">{b.telephone}</dd>
+              <dd className="text-slate-800">
+                <Telephone numero={b.telephone} />
+              </dd>
             </div>
             <div>
               <dt className="text-slate-600">Email</dt>

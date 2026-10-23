@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { BeneficiaireListe } from "@/lib/beneficiaires";
+import Telephone from "@/app/telephone";
 
 export default function BeneficiairesTable({
   beneficiaires,
@@ -90,7 +91,9 @@ export default function BeneficiairesTable({
                     "Bénéficiaire"
                   )}
                 </td>
-                <td className="px-4 py-3 text-slate-600">{b.telephone}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  <Telephone numero={b.telephone} />
+                </td>
                 <td className="px-4 py-3 text-slate-600">{b.email || "—"}</td>
                 <td className="px-4 py-3 text-slate-600">{b.adresse || "—"}</td>
                 <td className="px-4 py-3 text-slate-600">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CreneauPedaleur, BaladePedaleur } from "@/lib/creneaux";
 import { LIEU_TRIPORTEUR } from "@/lib/horaires";
 import { Charte, Contacts } from "@/app/infos-pedaleur";
+import Telephone from "@/app/telephone";
 
 type Profil = {
   complet: boolean;
@@ -283,7 +284,7 @@ export default function Dashboard({
                   {b.beneficiaires.map((p, i) => (
                     <div key={i} className="text-sm text-slate-600">
                       {p.couple ? "👫" : "🧓"} {p.nom}
-                      {p.couple ? " (couple)" : ""} · 📞 {p.telephone}
+                      {p.couple ? " (couple)" : ""} · 📞 <Telephone numero={p.telephone} />
                       {p.adresse ? ` · 🏠 ${p.adresse}` : ""}
                     </div>
                   ))}

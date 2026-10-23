@@ -1,5 +1,6 @@
 import { estConnecte } from "@/lib/auth";
 import { benevolesListe } from "@/lib/pedaleurs";
+import Telephone from "@/app/telephone";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export default async function BenevolesPage() {
                   {b.dateNaissance ? dateFr(b.dateNaissance) : <Manquant />}
                 </td>
                 <td className="px-4 py-3 text-slate-600">{b.adresse || <Manquant />}</td>
-                <td className="px-4 py-3 text-slate-600">{b.telephone || <Manquant />}</td>
+                <td className="px-4 py-3 text-slate-600">{b.telephone ? <Telephone numero={b.telephone} /> : <Manquant />}</td>
                 <td className="px-4 py-3 text-slate-600">{b.email}</td>
                 <td className="px-4 py-3 text-slate-600">{b.nbBalades}</td>
               </tr>

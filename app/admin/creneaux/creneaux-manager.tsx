@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LIBELLE_STATUT, ratioStatut, type StatutCreneau } from "@/lib/statut";
 import { LIEU_DEPART } from "@/lib/horaires";
+import Telephone from "@/app/telephone";
 
 type CreneauAdmin = {
   id: string;
@@ -238,7 +239,11 @@ export default function CreneauxManager({
                   {c.pedaleur && (
                     <span className="text-sm text-slate-600">
                       🚲 {c.pedaleur.nom}
-                      {c.pedaleur.telephone ? ` · 📞 ${c.pedaleur.telephone}` : ""}
+                      {c.pedaleur.telephone && (
+                        <>
+                          {" "}· 📞 <Telephone numero={c.pedaleur.telephone} />
+                        </>
+                      )}
                     </span>
                   )}
                 </div>
@@ -332,7 +337,7 @@ export default function CreneauxManager({
                             {b.type === "STRUCTURE" && b.nbBeneficiairesEstime != null
                               ? `· 👥 ~${b.nbBeneficiairesEstime} bénéficiaires `
                               : ""}
-                            · 📞 {b.telephone}
+                            · 📞 <Telephone numero={b.telephone} />
                             {b.email ? ` · ✉️ ${b.email}` : ""}
                             {b.adresse ? ` · 📍 ${b.adresse}` : ""}
                             {b.besoinsParticuliers ? ` · 📝 ${b.besoinsParticuliers}` : ""}
@@ -347,7 +352,12 @@ export default function CreneauxManager({
                       <div className="flex flex-wrap items-center gap-3">
                         <p className="text-sm text-slate-600">
                           🚲 <strong>{c.pedaleur.nom}</strong>
-                          {c.pedaleur.telephone ? ` · 📞 ${c.pedaleur.telephone}` : ""} · ✉️{" "}
+                          {c.pedaleur.telephone && (
+                            <>
+                              {" "}· 📞 <Telephone numero={c.pedaleur.telephone} />
+                            </>
+                          )}{" "}
+                          · ✉️{" "}
                           {c.pedaleur.email}
                         </p>
                         <button
