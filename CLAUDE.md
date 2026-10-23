@@ -54,9 +54,9 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 ## Commandes
 - Types : `node_modules/.bin/tsc --noEmit` (à lancer avant tout commit).
 - Après un changement de `prisma/schema.prisma` : `npx prisma generate`.
-- Déploiement (pas d'auto-déploiement GitHub→Railway ; toujours donner la ligne complète prête à
-  coller) :
-  `git add -A && git commit -m "..." && git push && npx -y @railway/cli up`
+- Déploiement : **automatique** — Railway est relié à GitHub, chaque push sur `main` part en
+  production en quelques minutes (depuis le 23/10/2026). Ne pousser sur `main` que ce qui est
+  prêt à être en ligne ; sinon travailler sur une branche.
   Le `start` Railway fait `prisma db push --accept-data-loss --skip-generate` : le schéma est
   synchronisé au déploiement, pas de migrations.
 - SQL ponctuel sur la base de prod : `echo '<SQL>' | npx prisma db execute --schema prisma/schema.prisma --stdin`
@@ -74,5 +74,4 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 - Ne pas committer `.env`. Comptes de test pédaleur : voir le projet Claude « Resa Mamiecyclette CCAS ».
 
 ## Pistes en attente
-- Emails Brevo (lib/email.ts existe mais n'est pas branché), auto-déploiement Railway via l'app
-  GitHub, rythme récurrent éditable en admin, export CSV, rappels la veille.
+- Emails Brevo (lib/email.ts existe mais n'est pas branché), rythme récurrent éditable en admin, export CSV, rappels la veille.
