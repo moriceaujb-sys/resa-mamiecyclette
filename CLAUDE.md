@@ -10,7 +10,8 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
   Photo d'accroche attendue dans `public/balade-triporteur.jpg` (repli sur le logo si absente).
 - `app/admin/*` : espace équipe (mot de passe `ADMIN_PASSWORD`) — réservation, créneaux,
   bénéficiaires, tableau de bord de pilotage (`app/admin/pilotage`, indicateurs dans
-  `lib/pilotage.ts`), aide & doc (`app/admin/aides/page.tsx` = documentation utilisateur, à tenir
+  `lib/pilotage.ts`), aide & doc (`app/admin/aides/page.tsx` = documentation utilisateur, charte du pédaleur
+  et contacts utiles, à tenir
   à jour à chaque changement de règle métier).
 - `app/pedaleur/*` : espace pédaleur (connexion / inscription libre, `?mode=inscription`
   ouvre l'onglet création de compte ; tableau de bord).
@@ -72,6 +73,5 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 - Ne pas committer `.env`. Comptes de test pédaleur : voir le projet Claude « Resa Mamiecyclette CCAS ».
 
 ## Pistes en attente
-- Charte du pédaleur à ajouter dans Aides & doc (texte attendu).
 - Emails Brevo (lib/email.ts existe mais n'est pas branché), auto-déploiement Railway via l'app
   GitHub, rythme récurrent éditable en admin, export CSV, rappels la veille.
