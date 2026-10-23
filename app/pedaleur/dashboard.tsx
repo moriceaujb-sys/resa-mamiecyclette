@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CreneauPedaleur, BaladePedaleur } from "@/lib/creneaux";
 import { LIEU_TRIPORTEUR } from "@/lib/horaires";
+import { Charte, Contacts } from "@/app/infos-pedaleur";
 
 type Profil = {
   complet: boolean;
@@ -297,6 +298,26 @@ export default function Dashboard({
           </div>
         )}
       </section>
+
+      <details className="group mb-3 rounded-xl bg-white p-5 shadow-sm">
+        <summary className="cursor-pointer list-none text-lg font-bold text-marine-700">
+          <span className="mr-2 inline-block transition group-open:rotate-90">›</span>
+          📞 Contacts utiles (planning, triporteur, dépannage, urgences)
+        </summary>
+        <div className="mt-4">
+          <Contacts />
+        </div>
+      </details>
+
+      <details className="group mb-8 rounded-xl bg-white p-5 shadow-sm">
+        <summary className="cursor-pointer list-none text-lg font-bold text-marine-700">
+          <span className="mr-2 inline-block transition group-open:rotate-90">›</span>
+          📜 Charte du pédaleur
+        </summary>
+        <div className="mt-4">
+          <Charte />
+        </div>
+      </details>
 
       {profil.complet && (
         <section className="rounded-xl bg-white p-5 shadow-sm">

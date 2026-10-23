@@ -10,11 +10,12 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
   Photo d'accroche attendue dans `public/balade-triporteur.jpg` (repli sur le logo si absente).
 - `app/admin/*` : espace équipe (mot de passe `ADMIN_PASSWORD`) — réservation, créneaux,
   bénéficiaires, tableau de bord de pilotage (`app/admin/pilotage`, indicateurs dans
-  `lib/pilotage.ts`), aide & doc (`app/admin/aides/page.tsx` = documentation utilisateur, charte du pédaleur
-  et contacts utiles, à tenir
+  `lib/pilotage.ts`), aide & doc (`app/admin/aides/page.tsx` = documentation utilisateur, à tenir
   à jour à chaque changement de règle métier).
 - `app/pedaleur/*` : espace pédaleur (connexion / inscription libre, `?mode=inscription`
   ouvre l'onglet création de compte ; tableau de bord).
+- `app/infos-pedaleur.tsx` : charte du pédaleur et contacts utiles (affichés dans l'espace
+  pédaleur et dans l'aide & doc).
 - `app/api/*` : routes (zod pour la validation).
 - `lib/statut.ts` (statuts d'un créneau), `lib/creneaux.ts` (génération + requêtes),
   `lib/horaires.ts` (règle récurrente), `lib/beneficiaires.ts`.
