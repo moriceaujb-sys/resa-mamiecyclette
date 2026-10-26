@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { CreneauPedaleur, BaladePedaleur } from "@/lib/creneaux";
 import { LIEU_TRIPORTEUR } from "@/lib/horaires";
 import { Charte, Contacts } from "@/app/infos-pedaleur";
+import MotDePasse from "./mot-de-passe";
 import Telephone from "@/app/telephone";
 
 type Profil = {
@@ -343,6 +344,8 @@ export default function Dashboard({
           </p>
         </section>
       )}
+
+      <MotDePasse />
     </div>
   );
 }

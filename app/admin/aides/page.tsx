@@ -196,6 +196,14 @@ export default function AidePage() {
           <strong>Bénévoles</strong> présente la liste complète et permet de la
           télécharger pour l&apos;ouvrir dans Excel.
         </p>
+        <p className="mt-2 text-slate-700">
+          <strong>Mot de passe perdu</strong> : dans la page{" "}
+          <strong>Bénévoles</strong>, cliquez sur « Nouveau mot de passe » en
+          face du bénévole. Un mot de passe provisoire s&apos;affiche :
+          communiquez-le-lui (par téléphone par exemple). Il pourra ensuite le
+          changer dans son espace, rubrique « Mon mot de passe ». Il n&apos;y a
+          pas d&apos;envoi par email pour l&apos;instant.
+        </p>
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm">

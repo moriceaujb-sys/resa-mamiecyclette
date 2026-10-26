@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Telephone from "@/app/telephone";
+import { TEL_MAMIE_CYCLETTE } from "@/app/infos-pedaleur";
 
 type Mode = "connexion" | "inscription";
 
@@ -158,6 +160,13 @@ export default function AuthForms({
           )}
           {erreur && (
             <p className="rounded-lg bg-red-50 px-4 py-3 text-red-700">{erreur}</p>
+          )}
+          {mode === "connexion" && (
+            <p className="text-sm text-slate-600">
+              Mot de passe oublié ? Appelez Mamie Cyclette au{" "}
+              <Telephone numero={TEL_MAMIE_CYCLETTE} /> : l&apos;équipe vous donnera
+              un mot de passe provisoire.
+            </p>
           )}
           <button type="submit" className="btn-primary w-full" disabled={envoi}>
             {envoi

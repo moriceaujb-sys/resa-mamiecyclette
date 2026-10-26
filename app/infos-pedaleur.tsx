@@ -3,6 +3,8 @@
 
 import Telephone from "@/app/telephone";
 
+export const TEL_MAMIE_CYCLETTE = "06 42 31 03 48";
+
 // Charte du pédaleur (document Mamie Cyclette / CCAS).
 const CHARTE = [
   "S'inscrire sur des créneaux via le planning partagé par Mamie Cyclette",
@@ -28,7 +30,7 @@ const CONTACTS: { sujet: string; numeros: { nom: string; tel: string; note?: str
   },
   {
     sujet: "Planning, seniors, pédaleurs, retards, annulations…",
-    numeros: [{ nom: "Mamie Cyclette", tel: "06 42 31 03 48" }],
+    numeros: [{ nom: "Mamie Cyclette", tel: TEL_MAMIE_CYCLETTE }],
   },
   {
     sujet: "Accès à l'Espace Robert Robin, au triporteur, aux accessoires, stockage et mise en charge batterie",

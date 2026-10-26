@@ -1,6 +1,7 @@
 import { estConnecte } from "@/lib/auth";
 import { benevolesListe } from "@/lib/pedaleurs";
 import Telephone from "@/app/telephone";
+import Reinitialiser from "./reinitialiser";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,9 @@ export default async function BenevolesPage() {
         </a>
       </div>
       <p className="mb-4 text-slate-600">
-        Informations demandées aux pédaleurs pour l&apos;assurance du CCAS.
+        Informations demandées aux pédaleurs pour l&apos;assurance du CCAS. Un
+        bénévole a perdu son mot de passe ? Cliquez sur « Nouveau mot de passe »
+        et communiquez-lui le mot de passe provisoire affiché.
         {incomplets > 0 &&
           ` ${incomplets} fiche${incomplets > 1 ? "s" : ""} à compléter : les informations manquantes seront demandées au bénévole à sa prochaine connexion.`}
       </p>
@@ -47,12 +50,13 @@ export default async function BenevolesPage() {
               <th className="px-4 py-3 font-semibold">Téléphone</th>
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Balades</th>
+              <th className="px-4 py-3 font-semibold">Mot de passe</th>
             </tr>
           </thead>
           <tbody>
             {benevoles.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-slate-600">
+                <td colSpan={7} className="px-4 py-6 text-slate-600">
                   Aucun pédaleur inscrit pour l&apos;instant.
                 </td>
               </tr>
@@ -67,6 +71,9 @@ export default async function BenevolesPage() {
                 <td className="px-4 py-3 text-slate-600">{b.telephone ? <Telephone numero={b.telephone} /> : <Manquant />}</td>
                 <td className="px-4 py-3 text-slate-600">{b.email}</td>
                 <td className="px-4 py-3 text-slate-600">{b.nbBalades}</td>
+                <td className="px-4 py-3">
+                  <Reinitialiser id={b.id} nom={b.nom} />
+                </td>
               </tr>
             ))}
           </tbody>
