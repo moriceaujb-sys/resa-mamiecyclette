@@ -57,9 +57,16 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
 ## Commandes
 - Types : `node_modules/.bin/tsc --noEmit` (à lancer avant tout commit).
 - Après un changement de `prisma/schema.prisma` : `npx prisma generate`.
-- Déploiement : **automatique** — Railway est relié à GitHub, chaque push sur `main` part en
-  production en quelques minutes (depuis le 23/10/2026). Ne pousser sur `main` que ce qui est
-  prêt à être en ligne ; sinon travailler sur une branche.
+- Déploiement : **manuel, par JB Le Dévéhat uniquement**. Railway affiche le dépôt GitHub comme
+  source mais n'y a pas accès (« Auto deploy unavailable » : le dépôt appartient au compte
+  personnel `moriceaujb-sys`, l'app GitHub Railway est sur `jbledevehat`) — un push sur `main`
+  ne déclenche donc **rien**. Procédure : dans le dépôt principal, `git fetch && git merge
+  --ff-only origin/main`, `npx prisma generate`, `tsc --noEmit`, relire le diff de
+  `prisma/schema.prisma`, puis JB lance lui-même (ligne complète prête à coller) :
+  `cd /Users/jean-baptisteledevehat/Claude/Projects/resa-mamiecyclette && npx -y @railway/cli up`
+  (`railway up` envoie le dossier local ; session CLI à renouveler avec `railway login` quand
+  elle expire). Décision du 26/10/2026 : on reste en manuel (l'alternative serait de transférer
+  le dépôt sur `jbledevehat` et de reconnecter la source Railway).
   Le `start` Railway fait `prisma db push --accept-data-loss --skip-generate` : le schéma est
   synchronisé au déploiement, pas de migrations.
 - SQL ponctuel sur la base de prod : `echo '<SQL>' | npx prisma db execute --schema prisma/schema.prisma --stdin`
