@@ -4,20 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { BeneficiaireListe } from "@/lib/beneficiaires";
 import Telephone from "@/app/telephone";
-
-// Clé de regroupement : même nom (sans accents, majuscules ni espaces en trop)
-// et même numéro (chiffres seuls, +33 ramené à 0). Les fiches ne sont pas
-// fusionnées : on les présente simplement ensemble.
-function cleDoublon(b: BeneficiaireListe): string {
-  const nom = b.nom
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-  const tel = b.telephone.replace(/\D/g, "").replace(/^33(?=\d{9}$)/, "0");
-  return `${b.type}|${nom}|${tel}`;
-}
+import { cleDoublon } from "@/lib/doublons";
 
 function fmtDate(iso: string): string {
   return new Intl.DateTimeFormat("fr-FR", {

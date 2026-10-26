@@ -36,6 +36,7 @@ export default function ReservationFlow({
     ignores: number;
     confirmeDirect: boolean;
     structure: boolean;
+    ficheExistante: boolean;
   } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [nbJours, setNbJours] = useState(PAS);
@@ -156,6 +157,7 @@ export default function ReservationFlow({
           ignores: data.ignores,
           confirmeDirect: !!data.confirmeDirect,
           structure: !!data.structure,
+          ficheExistante: !!data.ficheExistante,
         });
     } catch {
       setErreur("Impossible de contacter le serveur. Réessayez.");
@@ -212,6 +214,13 @@ export default function ReservationFlow({
               Vos autres disponibilités sont alors libérées automatiquement.
             </p>
           </>
+        )}
+        {resultat.ficheExistante && (
+          <p className="mx-auto mt-4 max-w-md rounded-lg bg-marine-50 px-4 py-3 text-sm text-marine-700">
+            {resultat.structure ? "Cette structure" : "Cette personne"} était déjà
+            enregistrée (même nom et même téléphone) : les créneaux ont été ajoutés
+            à sa fiche existante, sans créer de doublon.
+          </p>
         )}
         <button
           className="btn-ghost mt-6"

@@ -34,6 +34,16 @@ export default function AidePage() {
           créneau est complet dès l&apos;enregistrement (il n&apos;attend plus
           qu&apos;un pédaleur).
         </p>
+        <p className="mt-2 text-slate-700">
+          <strong>Pas de doublon</strong> : si vous enregistrez une personne déjà
+          connue (même nom et même téléphone, même si l&apos;écriture diffère
+          un peu : accents, espaces, +33), les créneaux sont ajoutés à sa fiche
+          existante au lieu d&apos;en créer une nouvelle ; l&apos;email,
+          l&apos;adresse et les besoins saisis complètent la fiche. Une personne
+          seule et un couple restent des fiches séparées. Dans la page{" "}
+          <strong>Bénéficiaires</strong>, les anciennes fiches en double sont
+          regroupées sur une même ligne.
+        </p>
       </div>
 
       <div className="rounded-xl bg-white p-6 shadow-sm">

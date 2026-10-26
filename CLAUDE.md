@@ -29,6 +29,9 @@ Site de mise en relation pour les balades en triporteur du CCAS (Mamie Cyclette 
   Mises à jour ponctuelles des données : `Configuration.versionDonnees` (`miseAJourV1`).
 - Départ du domicile de la personne (adresse obligatoire) ; le triporteur se récupère à
   l'Espace Robert Robin (`LIEU_DEPART`, `LIEU_TRIPORTEUR`).
+- Doublons (`lib/doublons.ts`, même type + nom + téléphone normalisés) : une réservation
+  réutilise la fiche existante (même formule seul/couple) ; la liste Bénéficiaires regroupe
+  les anciennes fiches en double.
 - Couple (`Beneficiaire.couple`) : occupe les 2 places (`places()` dans `lib/creneaux.ts`),
   seulement sur un créneau vide.
 - Un pédaleur peut se retirer d'une balade à venir (`retirerPedaleur()`) : bénéficiaires

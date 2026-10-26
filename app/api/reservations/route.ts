@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { peutRejoindreAvecPedaleur, places } from "@/lib/creneaux";
+import { cleDoublon } from "@/lib/doublons";
 
 // Un bénéficiaire (personne) déclare ses disponibilités sur un ou plusieurs
 // créneaux, ou une structure (EHPAD, association…) réserve fermement un ou
@@ -71,18 +72,38 @@ export async function POST(request: Request) {
 
   const result = await prisma
     .$transaction(async (tx) => {
-      const beneficiaire = await tx.beneficiaire.create({
-        data: {
-          type: d.type,
-          nom: d.nomClient,
-          telephone: d.telephone,
-          email: d.email || null,
-          adresse: d.adresse || null,
-          besoinsParticuliers: d.besoinsParticuliers || null,
-          nbBeneficiairesEstime: d.type === "STRUCTURE" ? d.nbBeneficiairesEstime : null,
-          couple: d.type === "PERSONNE" ? d.couple : false,
-        },
+      // Même nom et même téléphone qu'une fiche existante (et même formule,
+      // seul ou en couple) : on réutilise cette fiche au lieu d'en créer une
+      // nouvelle, en la complétant avec les informations saisies.
+      const couple = d.type === "PERSONNE" ? d.couple : false;
+      const cle = cleDoublon({ type: d.type, nom: d.nomClient, telephone: d.telephone });
+      const candidats = await tx.beneficiaire.findMany({
+        where: { type: d.type, couple },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, type: true, nom: true, telephone: true },
       });
+      const existant = candidats.find((c) => cleDoublon(c) === cle);
+      const infos = {
+        ...(d.email ? { email: d.email } : {}),
+        ...(d.adresse ? { adresse: d.adresse } : {}),
+        ...(d.besoinsParticuliers ? { besoinsParticuliers: d.besoinsParticuliers } : {}),
+        ...(d.type === "STRUCTURE" ? { nbBeneficiairesEstime: d.nbBeneficiairesEstime } : {}),
+      };
+      const beneficiaire = existant
+        ? await tx.beneficiaire.update({ where: { id: existant.id }, data: infos })
+        : await tx.beneficiaire.create({
+            data: {
+              type: d.type,
+              nom: d.nomClient,
+              telephone: d.telephone,
+              email: d.email || null,
+              adresse: d.adresse || null,
+              besoinsParticuliers: d.besoinsParticuliers || null,
+              nbBeneficiairesEstime: d.type === "STRUCTURE" ? d.nbBeneficiairesEstime : null,
+              couple,
+            },
+          });
+      const ficheExistante = existant != null;
 
       // ----- Structure : réservation ferme de créneaux entièrement libres -----
       if (d.type === "STRUCTURE") {
@@ -110,7 +131,7 @@ export async function POST(request: Request) {
           retenus++;
         }
         if (retenus === 0) throw new Error("AUCUN");
-        return { confirmeDirect: false, structure: true, retenus, ignores };
+        return { confirmeDirect: false, structure: true, retenus, ignores, ficheExistante };
       }
 
       // ----- Personne : disponibilités en attente d'un pédaleur -----
@@ -136,8 +157,13 @@ export async function POST(request: Request) {
         }
         const dispos = await tx.disponibilite.findMany({
           where: { creneauId, statut: { in: ["EN_ATTENTE", "CONFIRMEE"] } },
-          select: { beneficiaire: { select: { type: true, couple: true } } },
+          select: { beneficiaireId: true, beneficiaire: { select: { type: true, couple: true } } },
         });
+        // Déjà inscrit sur ce créneau (fiche réutilisée).
+        if (dispos.some((x) => x.beneficiaireId === beneficiaire.id)) {
+          ignores++;
+          continue;
+        }
         const occupees = dispos.reduce((n, x) => n + places(x.beneficiaire), 0);
         // Pas assez de places, ou créneau déjà pris par une structure.
         if (
@@ -181,6 +207,7 @@ export async function POST(request: Request) {
         structure: false,
         retenus: confirmeDirect ? 1 : enAttente,
         ignores,
+        ficheExistante,
       };
     })
     .catch((e: unknown) => {
@@ -202,6 +229,7 @@ export async function POST(request: Request) {
       structure: result.structure,
       retenus: result.retenus,
       ignores: result.ignores,
+      ficheExistante: result.ficheExistante,
     },
     { status: 201 }
   );
